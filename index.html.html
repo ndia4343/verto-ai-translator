@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>LinguaFlow — AI Translation Platform</title>
+<meta name="description" content="Professional AI translation for travelers, teams, and enterprises. 100+ languages, voice chat, real-time AI."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS — Sky Blue + White + Violet
+═══════════════════════════════════════════════ */
+:root{
+  /* Brand */
+  --sky:        #38bdf8;
+  --sky-light:  #e0f2fe;
+  --sky-mid:    #7dd3fc;
+  --sky-deep:   #0284c7;
+  --violet:     #7c3aed;
+  --violet-light:#ede9fe;
+  --violet-mid: #a78bfa;
+  --indigo:     #4f46e5;
+  --white:      #ffffff;
+
+  /* Backgrounds */
+  --bg:         #f8faff;
+  --bg2:        #f0f6ff;
+  --surface:    #ffffff;
+  --surface2:   #f5f9ff;
+
+  /* Text */
+  --t1:         #0f172a;
+  --t2:         #334155;
+  --t3:         #64748b;
+  --t4:         #94a3b8;
+  --t5:         #cbd5e1;
+
+  /* Borders */
+  --b1:         #e2ecf8;
+  --b2:         #c7daf0;
+  --b-focus:    #38bdf8;
+
+  /* Plan colors */
+  --free:       #10b981;
+  --pro:        #7c3aed;
+  --pro-light:  #ede9fe;
+  --team:       #0284c7;
+
+  /* UI */
+  --r-xs:       6px;
+  --r-sm:       10px;
+  --r-md:       16px;
+  --r-lg:       22px;
+  --r-xl:       30px;
+  --r-2xl:      40px;
+  --ease:       cubic-bezier(.4,0,.2,1);
+  --spring:     cubic-bezier(.34,1.56,.64,1);
+  --shadow-sm:  0 1px 3px rgba(15,23,42,.07),0 1px 2px rgba(15,23,42,.05);
+  --shadow-md:  0 4px 16px rgba(15,23,42,.09),0 2px 6px rgba(15,23,42,.05);
+  --shadow-lg:  0 12px 40px rgba(15,23,42,.12),0 4px 12px rgba(15,23,42,.06);
+  --shadow-xl:  0 24px 64px rgba(15,23,42,.14),0 8px 20px rgba(15,23,42,.07);
+  --glow-sky:   0 0 40px rgba(56,189,248,.25);
+  --glow-violet:0 0 40px rgba(124,58,237,.20);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'DM Sans',sans-serif;font-weight:300;color:var(--t1);background:var(--bg);min-height:100vh;overflow-x:hidden;line-height:1.6}
+
+/* ═══════════════════════════════════════════════
+   ANIMATED BACKGROUND
+═══════════════════════════════════════════════ */
+.bg-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-mesh{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 0% 0%, rgba(56,189,248,.12) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 100%,rgba(124,58,237,.10) 0%,transparent 55%),
+    radial-gradient(ellipse 50% 60% at 60% 30%,rgba(79,70,229,.07) 0%,transparent 50%),
+    linear-gradient(170deg,#f8faff 0%,#f0f6ff 40%,#f5f0ff 100%)
+}
+.bg-blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55}
+.bb1{width:600px;height:600px;background:rgba(56,189,248,.18);top:-200px;left:-180px;animation:bba 22s ease-in-out infinite alternate}
+.bb2{width:500px;height:500px;background:rgba(124,58,237,.12);bottom:-150px;right:-150px;animation:bbb 28s ease-in-out infinite alternate}
+.bb3{width:300px;height:300px;background:rgba(79,70,229,.10);top:40%;left:50%;animation:bbc 18s ease-in-out infinite alternate}
+@keyframes bba{to{transform:translate(80px,60px)scale(1.1)}}
+@keyframes bbb{to{transform:translate(-60px,-80px)scale(1.15)}}
+@keyframes bbc{to{transform:translate(-50px,60px)scale(.9)}}
+
+/* Grid pattern */
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(56,189,248,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.06) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+
+/* ═══════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════ */
+.page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+.wrap{width:100%;max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* ═══════════════════════════════════════════════
+   TOPBAR / NAV
+═══════════════════════════════════════════════ */
+.topbar{
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--b1);
+  position:sticky;top:0;z-index:200;
+}
+.nav{display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+.nav-logomark{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--sky-deep),var(--violet));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 12px rgba(56,189,248,.35);
+}
+.nav-logomark svg{width:20px;height:20px;fill:white}
+.nav-logotype{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px;color:var(--t1)}
+.nav-logotype span{color:var(--sky-deep)}
+.nav-center{display:flex;align-items:center;gap:4px}
+.nav-link{font-size:14px;font-weight:500;color:var(--t3);padding:6px 14px;border-radius:var(--r-sm);text-decoration:none;transition:all .2s;cursor:pointer;border:none;background:none;font-family:'DM Sans',sans-serif}
+.nav-link:hover{color:var(--t1);background:var(--bg2)}
+.nav-link.active{color:var(--sky-deep);background:var(--sky-light)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.plan-pill{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:5px 12px;border-radius:100px;border:1.5px solid;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.plan-pill.free{color:var(--free);border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.06)}
+.plan-pill.pro{color:var(--pro);border-color:rgba(124,58,237,.35);background:var(--pro-light)}
+.btn-upgrade{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:8px 18px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--sky-deep),var(--violet));color:white;border:none;cursor:pointer;transition:all .25s var(--spring);box-shadow:0 2px 12px rgba(56,189,248,.30)}
+.btn-upgrade:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(56,189,248,.40)}
+
+/* ═══════════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════════ */
+.hero{padding:52px 0 36px;animation:fadeU .7s var(--ease) both}
+@keyframes fadeU{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes fadeD{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:7px;background:var(--sky-light);border:1px solid rgba(56,189,248,.3);color:var(--sky-deep);font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:5px 14px;border-radius:100px;margin-bottom:16px}
+.hero-eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--sky);animation:blink 2s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero-title{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(28px,5vw,48px);font-weight:800;line-height:1.1;letter-spacing:-1px;margin-bottom:14px}
+.hero-title .grad{background:linear-gradient(135deg,var(--sky-deep),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:16px;color:var(--t3);max-width:600px;margin-bottom:28px;line-height:1.7}
+.hero-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn-primary{display:flex;align-items:center;gap:8px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;padding:13px 28px;background:linear-gradient(135deg,var(--sky-deep),var(--indigo));color:white;border:none;border-radius:var(--r-md);cursor:pointer;transition:all .3s var(--spring);box-shadow:0 4px 20px rgba(56,189,248,.30),var(--shadow-md)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(56,189,248,.40),var(--shadow-lg)}
+.btn-primary svg{width:16px;height:16px}
+.btn-secondary{display:flex;align-items:center;gap:8px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;padding:13px 24px;background:white;color:var(--t2);border:1.5px solid var(--b2);border-radius:var(--r-md);cursor:pointer;transition:all .25s;box-shadow:var(--shadow-sm)}
+.btn-secondary:hover{border-color:var(--sky);color:var(--sky-deep);background:var(--sky-light)}
+.btn-secondary svg{width:16px;height:16px}
+.hero-stats{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-top:28px}
+.h-stat{display:flex;flex-direction:column;gap:1px}
+.h-stat-v{font-family:'Bricolage Grotesque',sans-serif;font-size:22px;font-weight:800;color:var(--t1);line-height:1}
+.h-stat-l{font-size:11px;color:var(--t4);font-weight:500;text-transform:uppercase;letter-spacing:.7px}
+.h-stat-sep{width:1px;height:32px;background:var(--b1)}
+
+/* ═══════════════════════════════════════════════
+   MODE TABS
+═══════════════════════════════════════════════ */
+.mode-bar{
+  background:white;border:1.5px solid var(--b1);border-radius:var(--r-xl);
+  padding:6px;display:flex;gap:4px;width:fit-content;
+  box-shadow:var(--shadow-sm);margin-bottom:24px;
+  animation:fadeU .7s var(--ease) .1s both;
+}
+.mode-tab{
+  display:flex;align-items:center;gap:8px;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  padding:9px 18px;border-radius:var(--r-lg);border:none;background:none;
+  color:var(--t3);cursor:pointer;transition:all .25s var(--ease);white-space:nowrap;
+  position:relative;
+}
+.mode-tab svg{width:15px;height:15px;flex-shrink:0}
+.mode-tab:hover{color:var(--t2);background:var(--bg2)}
+.mode-tab.active{background:linear-gradient(135deg,var(--sky-deep),var(--indigo));color:white;box-shadow:0 2px 12px rgba(56,189,248,.30)}
+.mode-tab .pro-tag{font-size:9px;font-weight:700;background:var(--violet);color:white;padding:1px 5px;border-radius:4px;letter-spacing:.3px}
+.mode-tab.active .pro-tag{background:rgba(255,255,255,.25)}
+
+/* ═══════════════════════════════════════════════
+   MAIN TRANSLATOR CARD
+═══════════════════════════════════════════════ */
+.translator-wrap{animation:fadeU .7s var(--ease) .15s both}
+.translator-card{
+  background:white;border:1.5px solid var(--b1);border-radius:var(--r-xl);
+  box-shadow:var(--shadow-xl);overflow:hidden;
+}
+
+/* Lang bar */
+.lang-bar{
+  display:grid;grid-template-columns:1fr 56px 1fr;
+  align-items:center;padding:16px 24px;gap:12px;
+  background:linear-gradient(180deg,var(--bg2) 0%,white 100%);
+  border-bottom:1.5px solid var(--b1);
+}
+.ls{display:flex;flex-direction:column;gap:4px}
+.ls-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--t4)}
+.sel-wrap{position:relative}
+.sel-wrap::after{content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--t3);pointer-events:none;transition:transform .2s}
+select{
+  width:100%;appearance:none;-webkit-appearance:none;
+  background:var(--bg2);border:1.5px solid var(--b1);border-radius:var(--r-sm);
+  color:var(--t1);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+  padding:10px 36px 10px 13px;cursor:pointer;outline:none;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+select:hover{border-color:var(--sky);background:white}
+select:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(56,189,248,.15);background:white}
+select option{background:white;color:var(--t1)}
+.swap-btn{
+  width:42px;height:42px;border-radius:50%;
+  background:white;border:1.5px solid var(--b1);
+  color:var(--sky-deep);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .3s var(--spring);outline:none;flex-shrink:0;
+  box-shadow:var(--shadow-sm);
+}
+.swap-btn:hover{background:var(--sky-light);border-color:var(--sky);transform:rotate(180deg)scale(1.08);box-shadow:0 0 16px rgba(56,189,248,.25)}
+.swap-btn:active{transform:rotate(180deg)scale(.95)}
+.swap-btn svg{width:16px;height:16px}
+
+/* Panels */
+.panels{display:grid;grid-template-columns:1fr 1.5px 1fr;min-height:240px}
+.dv{background:var(--b1)}
+.panel{display:flex;flex-direction:column;padding:20px 24px 16px;position:relative}
+.panel-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
+.panel-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--t4)}
+.panel-acts{display:flex;gap:5px;flex-wrap:wrap}
+textarea{
+  flex:1;width:100%;background:transparent;border:none;outline:none;
+  color:var(--t1);font-family:'DM Sans',sans-serif;font-size:16px;font-weight:300;
+  line-height:1.75;resize:none;min-height:160px;
+}
+textarea::placeholder{color:var(--t5)}
+textarea::-webkit-scrollbar{width:4px}
+textarea::-webkit-scrollbar-track{background:transparent}
+textarea::-webkit-scrollbar-thumb{background:var(--b2);border-radius:4px}
+.out-area{
+  flex:1;min-height:160px;font-size:16px;font-weight:300;line-height:1.75;
+  color:var(--t1);word-break:break-word;white-space:pre-wrap;overflow-y:auto;
+}
+.out-area::-webkit-scrollbar{width:4px}
+.out-area::-webkit-scrollbar-track{background:transparent}
+.out-area::-webkit-scrollbar-thumb{background:var(--b2);border-radius:4px}
+.out-ph{color:var(--t5);font-style:italic}
+.panel-ft{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--b1)}
+.cc{font-size:11px;color:var(--t4)}
+.cc.warn{color:#f59e0b}
+.cc.danger{color:#ef4444}
+
+/* Buttons */
+.ibtn{
+  display:flex;align-items:center;gap:5px;
+  background:white;border:1px solid var(--b1);
+  color:var(--t3);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;
+  padding:5px 10px;border-radius:8px;cursor:pointer;
+  transition:all .2s;outline:none;white-space:nowrap;
+}
+.ibtn svg{width:12px;height:12px;flex-shrink:0}
+.ibtn:hover{background:var(--bg2);border-color:var(--b2);color:var(--t1)}
+.ibtn:active{transform:scale(.95)}
+.ibtn.ok{background:#f0fdf4;border-color:#86efac;color:#16a34a}
+.ibtn.tts-on{background:var(--sky-light);border-color:var(--sky);color:var(--sky-deep)}
+.mic-btn{
+  display:flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,rgba(56,189,248,.10),rgba(79,70,229,.08));
+  border:1.5px solid rgba(56,189,248,.35);
+  color:var(--sky-deep);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;
+  padding:5px 11px;border-radius:8px;cursor:pointer;transition:all .2s var(--spring);outline:none;
+}
+.mic-btn svg{width:12px;height:12px;flex-shrink:0}
+.mic-btn:hover{background:var(--sky-light);border-color:var(--sky);box-shadow:0 0 12px rgba(56,189,248,.20)}
+.mic-btn:active{transform:scale(.95)}
+.mic-btn.recording{animation:micP .8s ease-in-out infinite;background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.40);color:#dc2626}
+@keyframes micP{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.3)}50%{box-shadow:0 0 0 6px rgba(239,68,68,.0)}}
+
+/* Action bar */
+.action-bar{
+  padding:16px 24px;border-top:1.5px solid var(--b1);
+  background:var(--bg2);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+.action-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn-tr{
+  display:flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--sky-deep),var(--indigo));color:white;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+  padding:11px 26px;border:none;border-radius:var(--r-sm);cursor:pointer;
+  transition:all .3s var(--spring);box-shadow:0 3px 16px rgba(56,189,248,.28),var(--shadow-sm);
+  position:relative;overflow:hidden;
+}
+.btn-tr::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);transition:left .5s}
+.btn-tr:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(56,189,248,.38),var(--shadow-md)}
+.btn-tr:hover::after{left:160%}
+.btn-tr:active{transform:scale(.98)}
+.btn-tr:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-tr svg{width:15px;height:15px}
+.btn-voice-tr{
+  display:flex;align-items:center;gap:7px;
+  background:linear-gradient(135deg,rgba(239,68,68,.85),rgba(239,100,100,.85));color:white;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
+  padding:11px 20px;border:1.5px solid rgba(239,68,68,.25);border-radius:var(--r-sm);cursor:pointer;
+  transition:all .3s var(--spring);box-shadow:0 3px 12px rgba(239,68,68,.15);
+}
+.btn-voice-tr:hover{background:linear-gradient(135deg,#dc2626,#ef4444);transform:translateY(-1px);box-shadow:0 6px 20px rgba(239,68,68,.28)}
+.btn-voice-tr:active{transform:scale(.98)}
+.btn-voice-tr svg{width:14px;height:14px}
+.spinner{width:15px;height:15px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-m{flex:1;font-size:12px;color:var(--t3);display:flex;align-items:center;gap:6px;min-width:0}
+.status-m svg{width:12px;height:12px;flex-shrink:0}
+.status-m.err{color:#dc2626}
+.status-m.ok{color:#16a34a}
+.status-m.load{color:var(--sky-deep)}
+.kbd-hint{font-size:11px;color:var(--t4);display:flex;align-items:center;gap:4px;white-space:nowrap}
+kbd{display:inline-flex;align-items:center;background:white;border:1px solid var(--b2);border-radius:4px;padding:1px 5px;font-family:inherit;font-size:10px;color:var(--t3)}
+
+/* ═══════════════════════════════════════════════
+   AI ASSISTANT PANEL (inside card - for AI mode)
+═══════════════════════════════════════════════ */
+.ai-panel{
+  border-top:1.5px solid var(--b1);
+  background:linear-gradient(180deg,var(--bg2) 0%,white 100%);
+  padding:20px 24px;
+  display:none;
+}
+.ai-panel.visible{display:block}
+.ai-panel-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ai-panel-title{font-size:13px;font-weight:600;color:var(--t2);display:flex;align-items:center;gap:7px}
+.ai-panel-title svg{width:15px;height:15px;color:var(--violet)}
+.ai-badge-free{font-size:10px;font-weight:700;background:#f0fdf4;color:var(--free);border:1px solid #86efac;padding:2px 8px;border-radius:4px}
+.ai-badge-pro{font-size:10px;font-weight:700;background:var(--pro-light);color:var(--pro);border:1px solid #c4b5fd;padding:2px 8px;border-radius:4px}
+.ai-msgs{display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;margin-bottom:14px}
+.ai-msgs::-webkit-scrollbar{width:4px}
+.ai-msgs::-webkit-scrollbar-track{background:transparent}
+.ai-msgs::-webkit-scrollbar-thumb{background:var(--b2);border-radius:4px}
+.ai-msg{display:flex;gap:10px;align-items:flex-start}
+.ai-msg.user{flex-direction:row-reverse}
+.ai-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.ai-avatar.bot{background:linear-gradient(135deg,var(--sky-light),var(--violet-light));color:var(--violet)}
+.ai-avatar.user{background:linear-gradient(135deg,var(--sky-deep),var(--indigo));color:white;font-size:11px}
+.ai-bubble{max-width:75%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.6}
+.ai-msg.bot .ai-bubble{background:white;border:1px solid var(--b1);color:var(--t2);border-radius:4px 14px 14px 14px;box-shadow:var(--shadow-sm)}
+.ai-msg.user .ai-bubble{background:linear-gradient(135deg,var(--sky-deep),var(--indigo));color:white;border-radius:14px 4px 14px 14px}
+.ai-input-row{display:flex;gap:8px}
+.ai-input{
+  flex:1;background:white;border:1.5px solid var(--b1);border-radius:var(--r-sm);
+  color:var(--t1);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;
+  padding:10px 14px;outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.ai-input:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
+.ai-input::placeholder{color:var(--t5)}
+.btn-ai-send{
+  display:flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border-radius:var(--r-sm);
+  background:linear-gradient(135deg,var(--sky-deep),var(--violet));color:white;
+  border:none;cursor:pointer;transition:all .2s var(--spring);flex-shrink:0;
+  box-shadow:0 2px 8px rgba(56,189,248,.25);
+}
+.btn-ai-send:hover{transform:scale(1.07);box-shadow:0 4px 14px rgba(56,189,248,.35)}
+.btn-ai-send svg{width:15px;height:15px}
+.ai-limit-bar{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--t4)}
+.ai-limit-track{flex:1;height:4px;background:var(--b1);border-radius:4px;overflow:hidden}
+.ai-limit-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--sky),var(--indigo));transition:width .4s var(--ease)}
+.ai-limit-fill.warn{background:linear-gradient(90deg,#f59e0b,#ef4444)}
+
+/* ═══════════════════════════════════════════════
+   VOICE OVERLAY
+═══════════════════════════════════════════════ */
+.voice-overlay{
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(248,250,255,.95);
+  backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
+  opacity:0;pointer-events:none;transition:opacity .3s var(--ease);
+}
+.voice-overlay.active{opacity:1;pointer-events:all}
+.vo-header{text-align:center}
+.vo-lang-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--sky-deep);background:var(--sky-light);border:1.5px solid rgba(56,189,248,.3);padding:6px 16px;border-radius:100px;margin-bottom:10px}
+.vo-title{font-family:'Bricolage Grotesque',sans-serif;font-size:22px;font-weight:800;color:var(--t1);margin-bottom:4px}
+.vo-sub{font-size:14px;color:var(--t3)}
+.waveform-wrap{width:340px;height:80px;background:white;border-radius:var(--r-lg);border:1.5px solid var(--b1);padding:8px 16px;box-shadow:var(--shadow-sm)}
+#waveCanvas{width:308px;height:60px;display:block}
+.mic-rig{position:relative;display:flex;align-items:center;justify-content:center;width:140px;height:140px}
+.ring{position:absolute;border-radius:50%;border:1.5px solid;animation:ringX 2s ease-out infinite}
+.ring-1{width:90px;height:90px;border-color:rgba(56,189,248,.35);animation-delay:0s}
+.ring-2{width:116px;height:116px;border-color:rgba(79,70,229,.25);animation-delay:.55s}
+.ring-3{width:140px;height:140px;border-color:rgba(124,58,237,.15);animation-delay:1.1s}
+@keyframes ringX{0%{opacity:.7;transform:scale(.82)}100%{opacity:0;transform:scale(1.15)}}
+.stop-mic-btn{
+  width:66px;height:66px;border-radius:50%;
+  background:linear-gradient(135deg,#ef4444,#f87171);
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 24px rgba(239,68,68,.35),var(--shadow-md);
+  transition:all .25s var(--spring);outline:none;position:absolute;z-index:2;
+}
+.stop-mic-btn:hover{transform:scale(1.09)}
+.stop-mic-btn:active{transform:scale(.95)}
+.stop-mic-btn svg{width:24px;height:24px;fill:white}
+.vo-status{font-size:15px;color:var(--t2);font-weight:400;text-align:center}
+.vo-interim{
+  font-size:18px;font-weight:300;color:var(--t1);text-align:center;
+  max-width:560px;line-height:1.55;min-height:54px;padding:0 20px;
+}
+.vo-interim em{font-style:normal;color:var(--t4)}
+.vo-tips{font-size:12px;color:var(--t4);text-align:center;max-width:360px;line-height:1.7}
+.vo-cancel{background:white;border:1.5px solid var(--b2);color:var(--t3);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:9px 22px;border-radius:100px;cursor:pointer;transition:all .2s;outline:none;box-shadow:var(--shadow-sm)}
+.vo-cancel:hover{border-color:var(--sky);color:var(--sky-deep)}
+
+/* ═══════════════════════════════════════════════
+   TRAVELER MODE PANEL
+═══════════════════════════════════════════════ */
+.traveler-panel{display:none;animation:fadeU .4s var(--ease) both}
+.traveler-panel.visible{display:block}
+.tp-card{
+  background:white;border:1.5px solid var(--b1);border-radius:var(--r-xl);
+  box-shadow:var(--shadow-xl);overflow:hidden;margin-bottom:20px;
+}
+.tp-header{
+  background:linear-gradient(135deg,var(--sky-deep),var(--indigo));
+  padding:24px 28px;color:white;
+}
+.tp-h-title{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px}
+.tp-h-sub{font-size:13px;opacity:.75}
+.phrasebook{padding:20px 24px}
+.pb-cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.pb-cat{font-size:12px;font-weight:500;padding:5px 14px;border-radius:100px;border:1.5px solid var(--b1);color:var(--t3);background:white;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
+.pb-cat:hover{border-color:var(--sky);color:var(--sky-deep)}
+.pb-cat.active{background:var(--sky-light);border-color:var(--sky);color:var(--sky-deep);font-weight:600}
+.pb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.pb-item{
+  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r-md);
+  padding:14px 16px;cursor:pointer;transition:all .2s;
+}
+.pb-item:hover{border-color:var(--sky);background:var(--sky-light);box-shadow:var(--shadow-sm)}
+.pb-src{font-size:14px;font-weight:500;color:var(--t1);margin-bottom:4px}
+.pb-tgt{font-size:13px;color:var(--sky-deep);font-weight:400}
+.pb-lang{font-size:10px;color:var(--t4);margin-top:4px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.pb-actions{display:flex;gap:6px;margin-top:8px}
+
+/* ═══════════════════════════════════════════════
+   VOICE CHAT MODE
+═══════════════════════════════════════════════ */
+.voicechat-panel{display:none;animation:fadeU .4s var(--ease) both}
+.voicechat-panel.visible{display:block}
+.vc-card{background:white;border:1.5px solid var(--b1);border-radius:var(--r-xl);box-shadow:var(--shadow-xl);overflow:hidden}
+.vc-header{padding:20px 24px;border-bottom:1.5px solid var(--b1);background:var(--bg2);display:flex;align-items:center;justify-content:space-between}
+.vc-title{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800;color:var(--t1)}
+.vc-langs{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t3)}
+.vc-lang-badge{background:var(--sky-light);color:var(--sky-deep);border:1px solid rgba(56,189,248,.3);font-size:12px;font-weight:600;padding:4px 12px;border-radius:8px}
+.vc-conversation{min-height:300px;max-height:400px;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.vc-conversation::-webkit-scrollbar{width:4px}
+.vc-conversation::-webkit-scrollbar-track{background:transparent}
+.vc-conversation::-webkit-scrollbar-thumb{background:var(--b2);border-radius:4px}
+.vc-msg{display:flex;gap:10px;align-items:flex-start}
+.vc-msg.right{flex-direction:row-reverse}
+.vc-avatar{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px}
+.vc-avatar.p1{background:linear-gradient(135deg,var(--sky-light),#bae6fd);color:var(--sky-deep)}
+.vc-avatar.p2{background:linear-gradient(135deg,var(--violet-light),#ddd6fe);color:var(--violet)}
+.vc-bubble-wrap{display:flex;flex-direction:column;max-width:70%;gap:3px}
+.vc-msg.right .vc-bubble-wrap{align-items:flex-end}
+.vc-bubble{padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.5}
+.vc-msg.left .vc-bubble{background:var(--bg2);border:1px solid var(--b1);color:var(--t1);border-radius:4px 14px 14px 14px}
+.vc-msg.right .vc-bubble{background:linear-gradient(135deg,var(--sky-deep),var(--indigo));color:white;border-radius:14px 4px 14px 14px}
+.vc-bubble-tgt{font-size:12px;color:var(--sky-deep);padding:0 4px}
+.vc-msg.right .vc-bubble-tgt{color:var(--violet);text-align:right}
+.vc-meta{font-size:10px;color:var(--t4);padding:0 4px}
+.vc-controls{padding:16px 24px;border-top:1.5px solid var(--b1);background:var(--bg2);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.vc-lang-sel{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px}
+.vc-lang-sel label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t4)}
+.vc-sel-wrap{position:relative}
+.vc-sel-wrap::after{content:'';position:absolute;right:10px;top:50%;transform:translateY(-50%);border-left:3px solid transparent;border-right:3px solid transparent;border-top:4px solid var(--t3);pointer-events:none}
+.vc-sel-wrap select{font-size:12px;padding:8px 28px 8px 10px}
+.btn-vc-speak{
+  display:flex;align-items:center;gap:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+  padding:11px 20px;border-radius:var(--r-sm);border:none;cursor:pointer;transition:all .25s var(--spring);
+}
+.btn-vc-speak.p1-btn{background:linear-gradient(135deg,var(--sky-deep),var(--indigo));color:white;box-shadow:0 2px 10px rgba(56,189,248,.25)}
+.btn-vc-speak.p2-btn{background:linear-gradient(135deg,var(--violet),#6d28d9);color:white;box-shadow:0 2px 10px rgba(124,58,237,.25)}
+.btn-vc-speak:hover{transform:translateY(-1px)}
+.btn-vc-speak:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-vc-speak svg{width:14px;height:14px}
+
+/* ═══════════════════════════════════════════════
+   PRICING SECTION
+═══════════════════════════════════════════════ */
+.pricing-section{padding:56px 0 48px;animation:fadeU .7s var(--ease) both}
+.section-eyebrow{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sky-deep);margin-bottom:10px}
+.section-title{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(22px,4vw,34px);font-weight:800;letter-spacing:-.5px;margin-bottom:8px;color:var(--t1)}
+.section-sub{font-size:15px;color:var(--t3);max-width:500px;margin-bottom:36px}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;max-width:920px}
+.price-card{
+  background:white;border:1.5px solid var(--b1);border-radius:var(--r-xl);
+  padding:28px;position:relative;transition:all .25s;box-shadow:var(--shadow-sm);
+}
+.price-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.price-card.pro-card{
+  border-color:rgba(124,58,237,.35);
+  background:linear-gradient(170deg,white 0%,var(--pro-light) 100%);
+  box-shadow:0 4px 24px rgba(124,58,237,.12);
+}
+.price-card.pro-card:hover{box-shadow:0 12px 40px rgba(124,58,237,.20);transform:translateY(-2px)}
+.popular-badge{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(135deg,var(--violet),var(--indigo));color:white;
+  font-size:11px;font-weight:700;padding:4px 14px;border-radius:100px;
+  white-space:nowrap;box-shadow:0 2px 10px rgba(124,58,237,.30);
+}
+.price-plan-name{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px}
+.price-plan-name.free-c{color:var(--free)}
+.price-plan-name.pro-c{color:var(--pro)}
+.price-plan-name.team-c{color:var(--team)}
+.price-amount{font-family:'Bricolage Grotesque',sans-serif;font-size:38px;font-weight:800;letter-spacing:-1px;color:var(--t1);line-height:1;margin-bottom:4px}
+.price-amount sup{font-size:18px;vertical-align:super;margin-right:1px}
+.price-amount sub{font-size:14px;color:var(--t3);font-family:'DM Sans',sans-serif;font-weight:400}
+.price-desc{font-size:13px;color:var(--t3);margin-bottom:20px;line-height:1.5}
+.price-features{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.pf{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--t2)}
+.pf svg{width:15px;height:15px;flex-shrink:0;margin-top:1px}
+.pf.inc svg{color:var(--free)}
+.pf.inc-pro svg{color:var(--pro)}
+.pf.out svg{color:var(--t5)}
+.pf.out{color:var(--t4)}
+.btn-plan{width:100%;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:12px;border-radius:var(--r-md);border:none;cursor:pointer;transition:all .25s var(--spring)}
+.btn-plan.free-btn{background:var(--bg2);color:var(--t2);border:1.5px solid var(--b2)}
+.btn-plan.free-btn:hover{background:var(--sky-light);color:var(--sky-deep);border-color:var(--sky)}
+.btn-plan.pro-btn{background:linear-gradient(135deg,var(--violet),var(--indigo));color:white;box-shadow:0 3px 14px rgba(124,58,237,.28)}
+.btn-plan.pro-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(124,58,237,.38)}
+.btn-plan.team-btn{background:linear-gradient(135deg,var(--sky-deep),var(--indigo));color:white;box-shadow:0 3px 14px rgba(56,189,248,.22)}
+.btn-plan.team-btn:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(56,189,248,.35)}
+
+/* ═══════════════════════════════════════════════
+   HISTORY & FOOTER
+═══════════════════════════════════════════════ */
+.hist-card{background:white;border:1.5px solid var(--b1);border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:24px;animation:fadeU .7s var(--ease) .4s both}
+.hist-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--b1);background:var(--bg2)}
+.hist-title{font-size:12px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.8px}
+.hist-list{max-height:220px;overflow-y:auto}
+.hist-list::-webkit-scrollbar{width:4px}
+.hist-list::-webkit-scrollbar-track{background:transparent}
+.hist-list::-webkit-scrollbar-thumb{background:var(--b2);border-radius:4px}
+.hi{display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:start;padding:12px 20px;border-bottom:1px solid rgba(15,23,42,.04);cursor:pointer;transition:background .15s}
+.hi:last-child{border-bottom:none}
+.hi:hover{background:var(--sky-light)}
+.hs{font-size:13px;color:var(--t1);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ht{font-size:13px;color:var(--sky-deep);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.hm{display:flex;flex-direction:column;align-items:flex-end;gap:3px;white-space:nowrap}
+.hb{font-size:10px;font-weight:600;color:var(--sky-deep);background:var(--sky-light);border:1px solid rgba(56,189,248,.25);padding:2px 7px;border-radius:5px}
+.hv-tag{font-size:10px;color:var(--pro);display:flex;align-items:center;gap:3px;font-weight:600}
+.hv-tag svg{width:9px;height:9px;fill:currentColor}
+.ht2{font-size:10px;color:var(--t4)}
+.hist-empty{padding:32px 20px;text-align:center;color:var(--t4);font-size:13px;font-style:italic}
+
+footer{background:white;border-top:1.5px solid var(--b1);padding:36px 0;margin-top:40px}
+.footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.footer-brand{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800;color:var(--t2)}
+.footer-brand span{color:var(--sky-deep)}
+.footer-links{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.footer-links a{font-size:13px;color:var(--t3);text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--sky-deep)}
+.footer-copy{font-size:12px;color:var(--t4)}
+
+/* ═══════════════════════════════════════════════
+   PRO GATE MODAL
+═══════════════════════════════════════════════ */
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(15,23,42,.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.active{opacity:1;pointer-events:all}
+.modal-box{background:white;border-radius:var(--r-xl);max-width:460px;width:100%;padding:36px;box-shadow:var(--shadow-xl);border:1.5px solid var(--b1);position:relative;transform:scale(.95);transition:transform .3s var(--spring)}
+.modal-overlay.active .modal-box{transform:scale(1)}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;background:var(--bg2);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3);transition:all .2s}
+.modal-close:hover{background:var(--sky-light);color:var(--sky-deep)}
+.modal-close svg{width:14px;height:14px}
+.modal-icon{width:56px;height:56px;background:linear-gradient(135deg,var(--violet-light),var(--sky-light));border-radius:var(--r-lg);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.modal-icon svg{width:26px;height:26px;color:var(--violet)}
+.modal-title{font-family:'Bricolage Grotesque',sans-serif;font-size:22px;font-weight:800;margin-bottom:8px;color:var(--t1)}
+.modal-sub{font-size:14px;color:var(--t3);margin-bottom:20px;line-height:1.65}
+.modal-features{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.mf{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--t2)}
+.mf svg{width:16px;height:16px;color:var(--pro);flex-shrink:0}
+.modal-actions{display:flex;gap:8px}
+.btn-modal-pro{flex:1;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;padding:12px;background:linear-gradient(135deg,var(--violet),var(--indigo));color:white;border:none;border-radius:var(--r-md);cursor:pointer;transition:all .25s;box-shadow:0 3px 14px rgba(124,58,237,.28)}
+.btn-modal-pro:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(124,58,237,.38)}
+.btn-modal-cancel{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;padding:12px 20px;background:white;color:var(--t3);border:1.5px solid var(--b2);border-radius:var(--r-md);cursor:pointer;transition:all .2s}
+.btn-modal-cancel:hover{border-color:var(--sky);color:var(--sky-deep)}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════ */
+@media(max-width:768px){
+  .nav-center{display:none}
+  .lang-bar{grid-template-columns:1fr;gap:10px;padding:14px 18px}
+  .swap-btn{transform:rotate(90deg);margin:0 auto;width:36px;height:36px}
+  .swap-btn:hover{transform:rotate(270deg)scale(1.08)}
+  .panels{grid-template-columns:1fr}
+  .dv{height:1.5px;width:100%}
+  .panel{padding:16px 18px 12px}
+  .action-bar{flex-direction:column;align-items:stretch;padding:14px 18px}
+  .action-left{flex-direction:column}
+  .btn-tr,.btn-voice-tr{width:100%;justify-content:center}
+  .kbd-hint{display:none}
+  .hi{grid-template-columns:1fr}
+  .hm{flex-direction:row;align-items:center}
+  .hero-title{font-size:26px}
+  .pricing-grid{grid-template-columns:1fr}
+  .mode-bar{overflow-x:auto;width:100%}
+  .vc-controls{flex-direction:column;align-items:stretch}
+  .footer-inner{flex-direction:column;align-items:flex-start;gap:12px}
+  .modal-actions{flex-direction:column}
+}
+@media(max-width:480px){
+  .wrap{padding:0 16px}
+  .hero{padding:36px 0 24px}
+  .panel-acts{gap:3px}
+  .ibtn,.mic-btn{padding:4px 8px;font-size:10px}
+}
+*:focus-visible{outline:2px solid var(--sky);outline-offset:3px}
+
+/* ═══════════════════════════════════════════════
+   UTILITY
+═══════════════════════════════════════════════ */
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-wrap" aria-hidden="true">
+  <div class="bg-mesh"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-blob bb1"></div>
+  <div class="bg-blob bb2"></div>
+  <div class="bg-blob bb3"></div>
+</div>
+
+<!-- VOICE OVERLAY -->
+<div class="voice-overlay" id="voiceOverlay" role="dialog" aria-modal="true">
+  <div class="vo-header">
+    <div class="vo-lang-pill" id="voLangPill">🎙️ Listening in English</div>
+    <div class="vo-title" id="voTitle">Speak Now</div>
+    <div class="vo-sub" id="voSub">LinguaFlow is listening…</div>
+  </div>
+  <div class="waveform-wrap">
+    <canvas id="waveCanvas" width="616" height="120" aria-hidden="true"></canvas>
+  </div>
+  <div class="mic-rig" aria-hidden="true">
+    <div class="ring ring-1"></div>
+    <div class="ring ring-2"></div>
+    <div class="ring ring-3"></div>
+    <button class="stop-mic-btn" id="stopMicBtn" aria-label="Stop recording">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+    </button>
+  </div>
+  <div class="vo-status" id="voStatus">Listening… speak clearly into your microphone</div>
+  <div class="vo-interim" id="voInterim"><em>Your words will appear here in real time…</em></div>
+  <div class="vo-tips">Speak naturally · Pause to finish · Press stop when done</div>
+  <button class="vo-cancel" id="voCancelBtn">Cancel</button>
+</div>
+
+<!-- PRO GATE MODAL -->
+<div class="modal-overlay" id="proModal">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </div>
+    <div class="modal-title" id="modalTitle">Unlock Pro Features</div>
+    <div class="modal-sub" id="modalSub">This feature is available on the Pro plan. Upgrade to unlock unlimited AI translations, voice chat, traveler phrasebooks, and more.</div>
+    <div class="modal-features">
+      <div class="mf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Unlimited AI translations & chat</div>
+      <div class="mf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Live voice-to-voice chat translator</div>
+      <div class="mf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Traveler phrasebooks + offline mode</div>
+      <div class="mf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Document & image translation</div>
+      <div class="mf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Priority API — 10× faster responses</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-pro" id="modalUpgradeBtn">✨ Upgrade to Pro — $9/mo</button>
+      <button class="btn-modal-cancel" id="modalCancelBtn">Maybe later</button>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="wrap">
+      <nav class="nav">
+        <a class="nav-logo" href="#">
+          <div class="nav-logomark">
+            <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95a15.65 15.65 0 00-1.38-3.56A8.03 8.03 0 0118.92 8zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56A7.987 7.987 0 015.08 16zm2.95-8H5.08a7.987 7.987 0 014.33-3.56A15.65 15.65 0 008.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2s.07-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2zm.25 5.56a15.65 15.65 0 001.38-3.56h2.95a8.03 8.03 0 01-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>
+          </div>
+          <div class="nav-logotype">Lingua<span>Flow</span></div>
+        </a>
+        <div class="nav-center">
+          <button class="nav-link active" data-nav="translator">Translator</button>
+          <button class="nav-link" data-nav="traveler">Traveler</button>
+          <button class="nav-link" data-nav="voicechat">Voice Chat</button>
+          <button class="nav-link" data-nav="pricing">Pricing</button>
+        </div>
+        <div class="nav-right">
+          <div class="plan-pill free" id="planPill">✦ Free Plan</div>
+          <button class="btn-upgrade" id="navUpgradeBtn">Upgrade ✨</button>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+  <div style="flex:1;padding-bottom:48px">
+  <div class="wrap">
+
+    <!-- HERO -->
+    <div class="hero" id="heroSection">
+      <div class="hero-eyebrow"><div class="hero-eyebrow-dot"></div>AI Translation Platform</div>
+      <h1 class="hero-title">
+        Translate the world.<br>
+        <span class="grad">Speak every language.</span>
+      </h1>
+      <p class="hero-sub">Professional AI translation for travelers, teams, and global businesses. Text, voice, and real-time conversation — 100+ languages, zero friction.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" id="heroStartBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+          Start Translating Free
+        </button>
+        <button class="btn-secondary" onclick="showProModal('hero')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          View Pro Features
+        </button>
+      </div>
+      <div class="hero-stats">
+        <div class="h-stat"><div class="h-stat-v">100+</div><div class="h-stat-l">Languages</div></div>
+        <div class="h-stat-sep"></div>
+        <div class="h-stat"><div class="h-stat-v" id="hStatT">0</div><div class="h-stat-l">Translated</div></div>
+        <div class="h-stat-sep"></div>
+        <div class="h-stat"><div class="h-stat-v">Free</div><div class="h-stat-l">To Start</div></div>
+        <div class="h-stat-sep"></div>
+        <div class="h-stat"><div class="h-stat-v">AI</div><div class="h-stat-l">Powered</div></div>
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════
+         TRANSLATOR TAB
+    ═════════════════════════════ -->
+    <div id="tabTranslator">
+
+      <!-- Mode tabs -->
+      <div class="mode-bar">
+        <button class="mode-tab active" data-mode="text">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          Text
+        </button>
+        <button class="mode-tab" data-mode="voice">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+          Voice
+        </button>
+        <button class="mode-tab" data-mode="ai">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          AI Assistant
+          <span class="pro-tag">FREE</span>
+        </button>
+        <button class="mode-tab" data-mode="doc">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Document
+          <span class="pro-tag">PRO</span>
+        </button>
+      </div>
+
+      <!-- Translator card -->
+      <div class="translator-wrap">
+        <div class="translator-card">
+
+          <!-- Lang bar -->
+          <div class="lang-bar">
+            <div class="ls">
+              <div class="ls-label">From</div>
+              <div class="sel-wrap"><select id="srcLang"></select></div>
+            </div>
+            <button class="swap-btn" id="swapBtn" title="Swap (Alt+S)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg>
+            </button>
+            <div class="ls">
+              <div class="ls-label">To</div>
+              <div class="sel-wrap"><select id="tgtLang"></select></div>
+            </div>
+          </div>
+
+          <!-- Panels -->
+          <div class="panels">
+            <div class="panel">
+              <div class="panel-hd">
+                <span class="panel-label">Source Text</span>
+                <div class="panel-acts">
+                  <button class="mic-btn" id="srcMicBtn" title="Voice input (Alt+M)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                    Speak
+                  </button>
+                  <button class="ibtn" id="pasteBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M17 4h1a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h1"/></svg>Paste
+                  </button>
+                  <button class="ibtn" id="clearBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>Clear
+                  </button>
+                </div>
+              </div>
+              <textarea id="srcText" placeholder="Type here, or click Speak to use voice input…" maxlength="5000" spellcheck="true"></textarea>
+              <div class="panel-ft">
+                <span class="cc" id="cc">0 / 5000</span>
+                <button class="ibtn" id="srcTtsBtn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>Listen
+                </button>
+              </div>
+            </div>
+
+            <div class="dv"></div>
+
+            <div class="panel">
+              <div class="panel-hd">
+                <span class="panel-label">Translation</span>
+                <div class="panel-acts">
+                  <button class="ibtn" id="copyBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy
+                  </button>
+                  <button class="ibtn" id="tgtTtsBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/></svg>Listen
+                  </button>
+                </div>
+              </div>
+              <div class="out-area" id="outArea" aria-live="polite" tabindex="0">
+                <span class="out-ph">Translation appears here…</span>
+              </div>
+              <div class="panel-ft">
+                <span class="cc" id="occ">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action bar -->
+          <div class="action-bar">
+            <div class="action-left">
+              <button class="btn-tr" id="trBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="trIcon"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                <span id="trLabel">Translate</span>
+              </button>
+              <button class="btn-voice-tr" id="voiceTrBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                Voice Translate
+              </button>
+            </div>
+            <div class="status-m" id="statusMsg" role="status" aria-live="assertive"></div>
+            <div class="kbd-hint"><kbd>Ctrl</kbd>+<kbd>Enter</kbd>&nbsp;translate&nbsp;&nbsp;<kbd>Alt</kbd>+<kbd>M</kbd>&nbsp;mic</div>
+          </div>
+
+          <!-- AI Assistant Panel -->
+          <div class="ai-panel" id="aiPanel">
+            <div class="ai-panel-hd">
+              <div class="ai-panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                AI Translation Assistant
+                <span class="ai-badge-free">3 FREE / day</span>
+              </div>
+            </div>
+            <div class="ai-msgs" id="aiMsgs">
+              <div class="ai-msg bot">
+                <div class="ai-avatar bot">AI</div>
+                <div class="ai-bubble">Hi! I'm your AI translation assistant. I can explain grammar, provide cultural context, suggest better phrasing, and answer questions about your translation. How can I help?</div>
+              </div>
+            </div>
+            <div class="ai-input-row">
+              <input class="ai-input" id="aiInput" type="text" placeholder="Ask about the translation… e.g. 'Is this formal or informal?'" maxlength="500"/>
+              <button class="btn-ai-send" id="aiSendBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+            <div class="ai-limit-bar">
+              <span id="aiLimitLabel">3 / 3 free queries remaining</span>
+              <div class="ai-limit-track"><div class="ai-limit-fill" id="aiLimitFill" style="width:100%"></div></div>
+              <a href="#" onclick="showProModal('ai')" style="color:var(--pro);font-weight:600;text-decoration:none;font-size:11px">Upgrade ↗</a>
+            </div>
+          </div>
+
+        </div><!-- /translator-card -->
+      </div>
+
+      <!-- History -->
+      <div style="margin-top:20px">
+        <div class="hist-card">
+          <div class="hist-head">
+            <div class="hist-title">Translation History</div>
+            <button class="ibtn" id="clearHistBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>Clear All
+            </button>
+          </div>
+          <div class="hist-list" id="histList" role="list">
+            <div class="hist-empty">No translations yet — start translating above!</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /#tabTranslator -->
+
+    <!-- ═════════════════════════════
+         TRAVELER TAB
+    ═════════════════════════════ -->
+    <div id="tabTraveler" class="hidden">
+      <div class="traveler-panel visible">
+        <div class="tp-card">
+          <div class="tp-header">
+            <div class="tp-h-title">✈️ Traveler Phrasebook</div>
+            <div class="tp-h-sub">Essential phrases for every travel situation — tap any phrase to translate & hear it</div>
+          </div>
+          <div class="phrasebook">
+            <!-- Category filter -->
+            <div class="pb-cats" id="pbCats">
+              <button class="pb-cat active" data-cat="essentials">Essentials</button>
+              <button class="pb-cat" data-cat="food">Food & Dining</button>
+              <button class="pb-cat" data-cat="transport">Transport</button>
+              <button class="pb-cat" data-cat="hotel">Hotel</button>
+              <button class="pb-cat" data-cat="emergency">Emergency</button>
+              <button class="pb-cat" data-cat="shopping">Shopping</button>
+            </div>
+            <div class="pb-grid" id="pbGrid"></div>
+          </div>
+        </div>
+
+        <!-- Pro banner for traveler -->
+        <div style="background:linear-gradient(135deg,var(--sky-light),var(--violet-light));border:1.5px solid rgba(124,58,237,.2);border-radius:var(--r-xl);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div>
+            <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:800;color:var(--t1);margin-bottom:4px">🌐 Pro: Download Offline Phrasebooks</div>
+            <div style="font-size:13px;color:var(--t3)">100+ destination packs available offline — perfect for flights & areas without signal</div>
+          </div>
+          <button class="btn-primary" onclick="showProModal('traveler')">Unlock Offline Mode</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════
+         VOICE CHAT TAB
+    ═════════════════════════════ -->
+    <div id="tabVoicechat" class="hidden">
+      <div class="voicechat-panel visible">
+        <div class="vc-card">
+          <div class="vc-header">
+            <div class="vc-title">🎙️ Live Voice Conversation</div>
+            <div class="vc-langs">
+              <span class="vc-lang-badge" id="vcLang1Badge">English</span>
+              <span style="color:var(--t4)">⇄</span>
+              <span class="vc-lang-badge" id="vcLang2Badge">Spanish</span>
+            </div>
+          </div>
+          <div class="vc-conversation" id="vcConversation">
+            <div style="text-align:center;padding:24px;color:var(--t4);font-size:13px;font-style:italic">
+              Start speaking! Person 1 uses their language, Person 2 uses theirs — LinguaFlow translates in real time.
+            </div>
+          </div>
+          <div class="vc-controls">
+            <div class="vc-lang-sel">
+              <label>Person 1 Language</label>
+              <div class="vc-sel-wrap"><select id="vcLang1"></select></div>
+            </div>
+            <div class="vc-lang-sel">
+              <label>Person 2 Language</label>
+              <div class="vc-sel-wrap"><select id="vcLang2"></select></div>
+            </div>
+            <button class="btn-vc-speak p1-btn" id="vcBtn1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+              Person 1 Speak
+            </button>
+            <button class="btn-vc-speak p2-btn" id="vcBtn2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
+              Person 2 Speak
+            </button>
+          </div>
+        </div>
+        <!-- Pro upsell for advanced voice chat -->
+        <div style="margin-top:14px;background:var(--pro-light);border:1.5px solid rgba(124,58,237,.22);border-radius:var(--r-lg);padding:18px 22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <svg style="width:20px;height:20px;color:var(--pro);flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--pro);margin-bottom:2px">Pro: Real-time AI interpretation + noise cancellation</div><div style="font-size:12px;color:var(--t3)">Advanced voice chat with speaker identification, automatic language detection, and meeting transcription</div></div>
+          <button class="btn-plan pro-btn" style="padding:8px 18px;font-size:13px;width:auto" onclick="showProModal('voicechat')">Upgrade</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════
+         PRICING TAB
+    ═════════════════════════════ -->
+    <div id="tabPricing" class="hidden">
+      <div class="pricing-section">
+        <div class="section-eyebrow">Pricing</div>
+        <h2 class="section-title">Simple, transparent pricing</h2>
+        <p class="section-sub">Start free and scale as you grow. No hidden fees, cancel anytime.</p>
+        <div class="pricing-grid">
+
+          <!-- FREE -->
+          <div class="price-card">
+            <div class="price-plan-name free-c">Free</div>
+            <div class="price-amount"><span>$</span>0<sub>/month</sub></div>
+            <div class="price-desc">Perfect for personal use and occasional translation needs.</div>
+            <div class="price-features">
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>500 text translations / day</div>
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Voice input & text-to-speech</div>
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>3 AI assistant queries / day</div>
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Basic traveler phrasebook</div>
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Translation history</div>
+              <div class="pf out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>Live voice-to-voice chat</div>
+              <div class="pf out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>Document translation</div>
+              <div class="pf out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>Offline mode</div>
+            </div>
+            <button class="btn-plan free-btn" id="freePlanBtn">Current Plan</button>
+          </div>
+
+          <!-- PRO -->
+          <div class="price-card pro-card">
+            <div class="popular-badge">⭐ Most Popular</div>
+            <div class="price-plan-name pro-c">Pro</div>
+            <div class="price-amount"><span>$</span>9<sub>/month</sub></div>
+            <div class="price-desc">For frequent travelers, professionals, and power users who need the full experience.</div>
+            <div class="price-features">
+              <div class="pf inc-pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Unlimited translations</div>
+              <div class="pf inc-pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Unlimited AI assistant</div>
+              <div class="pf inc-pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Live voice-to-voice chat</div>
+              <div class="pf inc-pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Document & image translation</div>
+              <div class="pf inc-pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>100+ offline phrasebooks</div>
+              <div class="pf inc-pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Priority API (10× faster)</div>
+              <div class="pf inc-pro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Custom glossary / memory</div>
+            </div>
+            <button class="btn-plan pro-btn" onclick="showProModal('pricing')">Start Pro — $9/mo</button>
+          </div>
+
+          <!-- TEAM -->
+          <div class="price-card">
+            <div class="price-plan-name team-c">Team</div>
+            <div class="price-amount"><span>$</span>29<sub>/month</sub></div>
+            <div class="price-desc">For businesses and teams that need shared workspaces and admin controls.</div>
+            <div class="price-features">
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Everything in Pro</div>
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Up to 10 team members</div>
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Shared translation memory</div>
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>API access (10K calls/day)</div>
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Analytics dashboard</div>
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Priority support</div>
+              <div class="pf inc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>SSO / SAML</div>
+            </div>
+            <button class="btn-plan team-btn" onclick="showProModal('pricing')">Start Team Trial</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /wrap -->
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap">
+      <div class="footer-inner">
+        <div class="footer-brand">Lingua<span>Flow</span></div>
+        <div class="footer-links">
+          <a href="#">Privacy</a><a href="#">Terms</a>
+          <a href="https://mymemory.translated.net/" target="_blank" rel="noopener">MyMemory API</a>
+          <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API" target="_blank" rel="noopener">Speech API</a>
+        </div>
+        <div class="footer-copy">© <span id="footerYr"></span> LinguaFlow · Deploy on Vercel / Netlify</div>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- /page -->
+
+<script>
+"use strict";
+
+/* ══════════════════════════════════════════════════════
+   ▸▸ CONFIG — Edit API keys here
+══════════════════════════════════════════════════════
+   API_PROVIDER options:
+     'mymemory'        — Free, no key needed (default)
+     'google_rapidapi' — Google via RapidAPI (needs RAPIDAPI_KEY)
+     'libretranslate'  — LibreTranslate (needs LIBRE_KEY)
+
+   AI_PROVIDER:
+     'claude'  — Uses Anthropic Claude API (needs ANTHROPIC_KEY)
+     'mock'    — Mock AI responses (default, free demo)
+*/
+const API_PROVIDER   = 'mymemory';
+const RAPIDAPI_KEY   = 'YOUR_RAPIDAPI_KEY_HERE';      // ← INSERT FOR Google
+const LIBRE_KEY      = 'YOUR_LIBRETRANSLATE_KEY_HERE';// ← INSERT FOR LibreTranslate
+const LIBRE_URL      = 'https://libretranslate.com/translate';
+const MM_EMAIL       = '';                             // ← optional email for 500K/day limit
+
+const AI_PROVIDER    = 'mock';                         // ← 'claude' for real AI
+const ANTHROPIC_KEY  = 'YOUR_ANTHROPIC_KEY_HERE';     // ← INSERT for real AI
+const AI_FREE_LIMIT  = 3;                              // free AI queries per session
+
+/* ══════════════════════════════════════════════════════
+   LANGUAGE LIST
+══════════════════════════════════════════════════════ */
+const LANGS=[
+  {c:'auto',n:'🔍 Auto-detect'},
+  {c:'af',n:'Afrikaans'},{c:'sq',n:'Albanian'},{c:'am',n:'Amharic'},{c:'ar',n:'Arabic'},
+  {c:'hy',n:'Armenian'},{c:'az',n:'Azerbaijani'},{c:'eu',n:'Basque'},{c:'be',n:'Belarusian'},
+  {c:'bn',n:'Bengali'},{c:'bs',n:'Bosnian'},{c:'bg',n:'Bulgarian'},{c:'ca',n:'Catalan'},
+  {c:'zh-CN',n:'Chinese (Simplified)'},{c:'zh-TW',n:'Chinese (Traditional)'},
+  {c:'hr',n:'Croatian'},{c:'cs',n:'Czech'},{c:'da',n:'Danish'},{c:'nl',n:'Dutch'},
+  {c:'en',n:'English'},{c:'eo',n:'Esperanto'},{c:'et',n:'Estonian'},{c:'tl',n:'Filipino'},
+  {c:'fi',n:'Finnish'},{c:'fr',n:'French'},{c:'gl',n:'Galician'},{c:'ka',n:'Georgian'},
+  {c:'de',n:'German'},{c:'el',n:'Greek'},{c:'gu',n:'Gujarati'},{c:'ht',n:'Haitian Creole'},
+  {c:'ha',n:'Hausa'},{c:'he',n:'Hebrew'},{c:'hi',n:'Hindi'},{c:'hu',n:'Hungarian'},
+  {c:'is',n:'Icelandic'},{c:'ig',n:'Igbo'},{c:'id',n:'Indonesian'},{c:'ga',n:'Irish'},
+  {c:'it',n:'Italian'},{c:'ja',n:'Japanese'},{c:'kn',n:'Kannada'},{c:'kk',n:'Kazakh'},
+  {c:'km',n:'Khmer'},{c:'ko',n:'Korean'},{c:'ku',n:'Kurdish'},{c:'ky',n:'Kyrgyz'},
+  {c:'lo',n:'Lao'},{c:'la',n:'Latin'},{c:'lv',n:'Latvian'},{c:'lt',n:'Lithuanian'},
+  {c:'lb',n:'Luxembourgish'},{c:'mk',n:'Macedonian'},{c:'mg',n:'Malagasy'},{c:'ms',n:'Malay'},
+  {c:'ml',n:'Malayalam'},{c:'mt',n:'Maltese'},{c:'mi',n:'Maori'},{c:'mr',n:'Marathi'},
+  {c:'mn',n:'Mongolian'},{c:'my',n:'Myanmar (Burmese)'},{c:'ne',n:'Nepali'},
+  {c:'no',n:'Norwegian'},{c:'ny',n:'Nyanja'},{c:'ps',n:'Pashto'},{c:'fa',n:'Persian'},
+  {c:'pl',n:'Polish'},{c:'pt',n:'Portuguese'},{c:'pa',n:'Punjabi'},{c:'ro',n:'Romanian'},
+  {c:'ru',n:'Russian'},{c:'sm',n:'Samoan'},{c:'sr',n:'Serbian'},{c:'st',n:'Sesotho'},
+  {c:'sn',n:'Shona'},{c:'sd',n:'Sindhi'},{c:'si',n:'Sinhala'},{c:'sk',n:'Slovak'},
+  {c:'sl',n:'Slovenian'},{c:'so',n:'Somali'},{c:'es',n:'Spanish'},{c:'su',n:'Sundanese'},
+  {c:'sw',n:'Swahili'},{c:'sv',n:'Swedish'},{c:'tg',n:'Tajik'},{c:'ta',n:'Tamil'},
+  {c:'te',n:'Telugu'},{c:'th',n:'Thai'},{c:'tr',n:'Turkish'},{c:'uk',n:'Ukrainian'},
+  {c:'ur',n:'Urdu'},{c:'uz',n:'Uzbek'},{c:'vi',n:'Vietnamese'},{c:'cy',n:'Welsh'},
+  {c:'xh',n:'Xhosa'},{c:'yi',n:'Yiddish'},{c:'yo',n:'Yoruba'},{c:'zu',n:'Zulu'},
+];
+
+/* PHRASEBOOK DATA */
+const PHRASES={
+  essentials:[
+    {en:'Hello / Good day',es:'Hola / Buenos días',fr:'Bonjour',de:'Hallo / Guten Tag'},
+    {en:'Thank you very much',es:'Muchas gracias',fr:'Merci beaucoup',de:'Vielen Dank'},
+    {en:'Please',es:'Por favor',fr:'S\'il vous plaît',de:'Bitte'},
+    {en:'Excuse me / Sorry',es:'Perdón / Lo siento',fr:'Excusez-moi',de:'Entschuldigung'},
+    {en:'Do you speak English?',es:'¿Hablas inglés?',fr:'Parlez-vous anglais?',de:'Sprechen Sie Englisch?'},
+    {en:'I don\'t understand',es:'No entiendo',fr:'Je ne comprends pas',de:'Ich verstehe nicht'},
+  ],
+  food:[
+    {en:'A table for two, please',es:'Una mesa para dos',fr:'Une table pour deux',de:'Einen Tisch für zwei'},
+    {en:'The menu, please',es:'La carta, por favor',fr:'La carte, s\'il vous plaît',de:'Die Speisekarte, bitte'},
+    {en:'I\'m a vegetarian',es:'Soy vegetariano/a',fr:'Je suis végétarien(ne)',de:'Ich bin Vegetarier(in)'},
+    {en:'The bill, please',es:'La cuenta, por favor',fr:'L\'addition, s\'il vous plaît',de:'Die Rechnung, bitte'},
+    {en:'Is there WiFi?',es:'¿Hay WiFi?',fr:'Il y a du WiFi?',de:'Gibt es WLAN?'},
+    {en:'This is delicious!',es:'¡Está delicioso!',fr:'C\'est délicieux!',de:'Das ist köstlich!'},
+  ],
+  transport:[
+    {en:'Where is the airport?',es:'¿Dónde está el aeropuerto?',fr:'Où est l\'aéroport?',de:'Wo ist der Flughafen?'},
+    {en:'How much is a taxi to...?',es:'¿Cuánto cuesta un taxi a...?',fr:'Combien coûte un taxi pour...?',de:'Was kostet ein Taxi nach...?'},
+    {en:'One ticket to..., please',es:'Un billete a..., por favor',fr:'Un billet pour..., s\'il vous plaît',de:'Eine Fahrkarte nach..., bitte'},
+    {en:'Is this the right train?',es:'¿Es este el tren correcto?',fr:'Est-ce le bon train?',de:'Ist das der richtige Zug?'},
+    {en:'I am lost',es:'Estoy perdido/a',fr:'Je suis perdu(e)',de:'Ich habe mich verirrt'},
+  ],
+  hotel:[
+    {en:'I have a reservation',es:'Tengo una reserva',fr:'J\'ai une réservation',de:'Ich habe eine Reservierung'},
+    {en:'Check in / Check out',es:'Registrarse / Salir',fr:'Arrivée / Départ',de:'Einchecken / Auschecken'},
+    {en:'Can I get a late checkout?',es:'¿Puedo salir tarde?',fr:'Puis-je partir plus tard?',de:'Kann ich später auschecken?'},
+    {en:'The air conditioning is broken',es:'El aire acondicionado está roto',fr:'La climatisation est en panne',de:'Die Klimaanlage ist kaputt'},
+    {en:'More towels, please',es:'Más toallas, por favor',fr:'Plus de serviettes, s\'il vous plaît',de:'Mehr Handtücher, bitte'},
+  ],
+  emergency:[
+    {en:'Help!',es:'¡Ayuda!',fr:'Au secours!',de:'Hilfe!'},
+    {en:'Call the police!',es:'¡Llame a la policía!',fr:'Appelez la police!',de:'Rufen Sie die Polizei!'},
+    {en:'I need a doctor',es:'Necesito un médico',fr:'J\'ai besoin d\'un médecin',de:'Ich brauche einen Arzt'},
+    {en:'Call an ambulance!',es:'¡Llame a una ambulancia!',fr:'Appelez une ambulance!',de:'Rufen Sie einen Krankenwagen!'},
+    {en:'I\'ve been robbed',es:'Me han robado',fr:'On m\'a volé',de:'Ich wurde bestohlen'},
+    {en:'I am allergic to...',es:'Soy alérgico/a a...',fr:'Je suis allergique à...',de:'Ich bin allergisch gegen...'},
+  ],
+  shopping:[
+    {en:'How much does this cost?',es:'¿Cuánto cuesta esto?',fr:'Combien ça coûte?',de:'Was kostet das?'},
+    {en:'Can you give a discount?',es:'¿Puede darme un descuento?',fr:'Pouvez-vous faire un rabais?',de:'Können Sie Rabatt geben?'},
+    {en:'Do you accept credit cards?',es:'¿Aceptan tarjetas de crédito?',fr:'Acceptez-vous les cartes?',de:'Akzeptieren Sie Kreditkarten?'},
+    {en:'I\'m just browsing',es:'Solo estoy mirando',fr:'Je regarde seulement',de:'Ich schaue nur'},
+    {en:'Do you have this in my size?',es:'¿Tiene esto en mi talla?',fr:'Avez-vous ma taille?',de:'Haben Sie das in meiner Größe?'},
+  ],
+};
+
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
+const S={
+  translated:'', isTranslating:false, isSpeaking:false,
+  isListening:false, autoTranslate:false, vcSpeaker:0,
+  recognition:null, audioCtx:null, analyser:null, micStream:null, animFrame:null,
+  aiUsed:parseInt(sessionStorage.getItem('lf_ai_used')||'0',10),
+  aiMessages:[],
+  totalT:parseInt(localStorage.getItem('lf_t')||'0',10),
+  totalV:parseInt(localStorage.getItem('lf_v')||'0',10),
+  history:JSON.parse(localStorage.getItem('lf_h')||'[]'),
+  currentTab:'translator',
+  currentMode:'text',
+  pbCat:'essentials',
+};
+
+/* DOM */
+const $=id=>document.getElementById(id);
+const srcSel=$('srcLang'),tgtSel=$('tgtLang');
+const srcTxt=$('srcText'),outArea=$('outArea');
+const trBtn=$('trBtn'),trIcon=$('trIcon'),trLabel=$('trLabel');
+const voiceTrBtn=$('voiceTrBtn'),srcMicBtn=$('srcMicBtn');
+const swapBtn=$('swapBtn'),clearBtn=$('clearBtn'),pasteBtn=$('pasteBtn');
+const copyBtn=$('copyBtn'),srcTtsBtn=$('srcTtsBtn'),tgtTtsBtn=$('tgtTtsBtn');
+const ccEl=$('cc'),occEl=$('occ'),statusMsg=$('statusMsg');
+const histList=$('histList'),clearHistBtn=$('clearHistBtn');
+const voiceOverlay=$('voiceOverlay'),voLangPill=$('voLangPill'),voStatus=$('voStatus'),voInterim=$('voInterim');
+const stopMicBtn=$('stopMicBtn'),voCancelBtn=$('voCancelBtn');
+const waveCanvas=$('waveCanvas');
+const aiPanel=$('aiPanel'),aiMsgs=$('aiMsgs'),aiInput=$('aiInput'),aiSendBtn=$('aiSendBtn');
+const aiLimitLabel=$('aiLimitLabel'),aiLimitFill=$('aiLimitFill');
+const vcBtn1=$('vcBtn1'),vcBtn2=$('vcBtn2');
+const vcLang1=$('vcLang1'),vcLang2=$('vcLang2');
+
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+function init(){
+  $('footerYr').textContent=new Date().getFullYear();
+  buildSelects();
+  $('hStatT').textContent=S.totalT.toLocaleString();
+  renderHistory();
+  renderPhrasebook('essentials');
+  checkVoiceSupport();
+  bindEvents();
+  updateAiLimit();
+  // Check if voice not supported
+  const noSR=!window.SpeechRecognition&&!window.webkitSpeechRecognition;
+  if(noSR){[srcMicBtn,voiceTrBtn,vcBtn1,vcBtn2].forEach(b=>{b.disabled=true;b.style.opacity='.38';b.style.cursor='not-allowed';});}
+}
+
+function checkVoiceSupport(){
+  /* intentionally permissive — just logs */
+  if(!window.SpeechRecognition&&!window.webkitSpeechRecognition) console.warn('SpeechRecognition not available');
+}
+
+/* BUILD SELECTS */
+function buildSelects(){
+  const noAuto=LANGS.filter(l=>l.c!=='auto');
+  LANGS.forEach(l=>{
+    const o=new Option(l.n,l.c);
+    srcSel.appendChild(o.cloneNode(true));
+    if(l.c!=='auto') tgtSel.appendChild(o);
+  });
+  noAuto.forEach(l=>{ vcLang1.appendChild(new Option(l.n,l.c)); vcLang2.appendChild(new Option(l.n,l.c)); });
+  srcSel.value='en'; tgtSel.value='ur';
+  vcLang1.value='en'; vcLang2.value='es';
+  syncVcBadges();
+}
+
+/* ══════════════════════════════════════════════════════
+   EVENTS
+══════════════════════════════════════════════════════ */
+function bindEvents(){
+  srcTxt.addEventListener('input',onInput);
+  trBtn.addEventListener('click',doTranslate);
+  voiceTrBtn.addEventListener('click',()=>openVoice(true));
+  srcMicBtn.addEventListener('click',()=>openVoice(false));
+  swapBtn.addEventListener('click',doSwap);
+  clearBtn.addEventListener('click',doClear);
+  pasteBtn.addEventListener('click',doPaste);
+  copyBtn.addEventListener('click',doCopy);
+  srcTtsBtn.addEventListener('click',()=>speak(srcTxt.value,srcSel.value,srcTtsBtn));
+  tgtTtsBtn.addEventListener('click',()=>speak(S.translated,tgtSel.value,tgtTtsBtn));
+  stopMicBtn.addEventListener('click',stopVoice);
+  voCancelBtn.addEventListener('click',cancelVoice);
+  clearHistBtn.addEventListener('click',clearHistory);
+  aiSendBtn.addEventListener('click',sendAiMessage);
+  aiInput.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendAiMessage(); } });
+  vcBtn1.addEventListener('click',()=>startVcSpeak(1));
+  vcBtn2.addEventListener('click',()=>startVcSpeak(2));
+  vcLang1.addEventListener('change',syncVcBadges);
+  vcLang2.addEventListener('change',syncVcBadges);
+  $('proModal').addEventListener('click',e=>{ if(e.target===$('proModal')) closeProModal(); });
+  $('modalClose').addEventListener('click',closeProModal);
+  $('modalCancelBtn').addEventListener('click',closeProModal);
+  $('modalUpgradeBtn').addEventListener('click',()=>{ setStatus('Redirecting to checkout… (demo mode)','ok'); closeProModal(); setTimeout(()=>setStatus(''),2500); });
+  $('navUpgradeBtn').addEventListener('click',()=>showProModal('nav'));
+  $('heroStartBtn').addEventListener('click',()=>{ document.querySelector('.translator-card').scrollIntoView({behavior:'smooth',block:'start'}); });
+  $('freePlanBtn').addEventListener('click',()=>setStatus('You\'re already on the Free plan!','ok'));
+  document.querySelectorAll('[data-nav]').forEach(btn=>{
+    btn.addEventListener('click',()=>switchTab(btn.dataset.nav));
+  });
+  document.querySelectorAll('[data-mode]').forEach(btn=>{
+    btn.addEventListener('click',()=>switchMode(btn.dataset.mode));
+  });
+  document.querySelectorAll('.pb-cat').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.pb-cat').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderPhrasebook(btn.dataset.cat);
+    });
+  });
+  document.addEventListener('keydown',onKey);
+}
+
+/* TAB SWITCHING */
+function switchTab(tab){
+  ['translator','traveler','voicechat','pricing'].forEach(t=>{
+    $('tab'+cap(t)).classList.add('hidden');
+  });
+  $('tab'+cap(tab)).classList.remove('hidden');
+  $('heroSection').style.display=tab==='translator'?'':'none';
+  document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===tab));
+  S.currentTab=tab;
+}
+
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+
+/* MODE SWITCHING */
+function switchMode(mode){
+  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+  if(mode==='doc'||mode==='voice'){ showProModal(mode); return; }
+  if(mode==='ai') aiPanel.classList.add('visible');
+  else aiPanel.classList.remove('visible');
+  S.currentMode=mode;
+}
+
+/* CHAR COUNT */
+function onInput(){
+  const l=srcTxt.value.length;
+  ccEl.textContent=`${l} / 5000`;
+  ccEl.className='cc'+(l>4500?' danger':l>4000?' warn':'');
+}
+
+/* STATUS */
+const ICONS={
+  err:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>`,
+  ok:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+  load:`<div class="spinner"></div>`,
+};
+function setStatus(txt,type=''){
+  statusMsg.innerHTML=txt?`${ICONS[type]||''}${esc(txt)}`:'';
+  statusMsg.className=`status-m${type?' '+type:''}`;
+}
+function setLoading(on){
+  S.isTranslating=on; trBtn.disabled=on;
+  if(on){ trIcon.style.display='none'; trLabel.innerHTML=`<div class="spinner" style="display:inline-block;margin-right:6px;vertical-align:middle"></div>Translating…`; setStatus('Contacting translation API…','load'); }
+  else{ trIcon.style.display=''; trLabel.textContent='Translate'; }
+}
+
+/* ══════════════════════════════════════════════════════
+   VOICE INPUT — Web Speech API
+══════════════════════════════════════════════════════ */
+function openVoice(autoTranslate,lang,onDone){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR||S.isListening) return;
+  const useLang=lang||(srcSel.value==='auto'?'en':srcSel.value);
+  const langName=LANGS.find(l=>l.c===useLang)?.n||useLang;
+  voLangPill.textContent=`🎙️ Listening in ${langName}`;
+  voStatus.textContent='🎙️ Speak clearly…';
+  voInterim.innerHTML='<em>Your words will appear here in real time…</em>';
+  voiceOverlay.classList.add('active');
+  document.body.style.overflow='hidden';
+  S.isListening=true; S.autoTranslate=autoTranslate; S._vcOnDone=onDone||null;
+  srcMicBtn.classList.add('recording');
+  startWave();
+  const rec=new SR();
+  S.recognition=rec;
+  rec.lang=useLang; rec.continuous=true; rec.interimResults=true; rec.maxAlternatives=1;
+  let hasResult=false;
+  rec.onresult=e=>{
+    let all='';
+    for(let i=0;i<e.results.length;i++) all+=e.results[i][0].transcript+' ';
+    all=all.trim();
+    voInterim.textContent=all||'…';
+    if(!onDone){ srcTxt.value=all; onInput(); }
+    hasResult=!!all;
+    voStatus.textContent='🎙️ Listening… say more or press stop';
+  };
+  rec.onerror=e=>{
+    if(e.error==='not-allowed'){ closeVoice(); setStatus('Microphone permission denied.','err'); return; }
+    if(e.error==='aborted'||e.error==='no-speech') return;
+    voStatus.textContent='Error: '+e.error;
+  };
+  rec.onend=()=>{ if(S.isListening){ try{rec.start();}catch(ex){} } };
+  try{rec.start();}catch(ex){ setStatus('Could not start microphone.','err'); closeVoice(); }
+}
+
+function stopVoice(){
+  if(!S.isListening) return;
+  const shouldTr=S.autoTranslate, onDone=S._vcOnDone;
+  const capturedText=voInterim.textContent==='…'||voInterim.textContent.startsWith('Your words')?'':voInterim.textContent;
+  closeVoice();
+  if(onDone&&capturedText){ onDone(capturedText); return; }
+  if(shouldTr&&srcTxt.value.trim()) setTimeout(()=>doTranslate(),200);
+}
+
+function cancelVoice(){ S.autoTranslate=false; S._vcOnDone=null; closeVoice(); }
+
+function closeVoice(){
+  S.isListening=false;
+  voiceOverlay.classList.remove('active');
+  document.body.style.overflow='';
+  srcMicBtn.classList.remove('recording');
+  vcBtn1.disabled=false; vcBtn2.disabled=false;
+  stopWave();
+  if(S.recognition){try{S.recognition.abort();}catch(ex){} S.recognition=null;}
+}
+
+/* ══════════════════════════════════════════════════════
+   WAVEFORM
+══════════════════════════════════════════════════════ */
+async function startWave(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    S.micStream=stream;
+    S.audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const src=S.audioCtx.createMediaStreamSource(stream);
+    S.analyser=S.audioCtx.createAnalyser(); S.analyser.fftSize=256;
+    src.connect(S.analyser); drawRealWave();
+  } catch(ex){ drawIdleWave(); }
+}
+
+function stopWave(){
+  if(S.animFrame){cancelAnimationFrame(S.animFrame);S.animFrame=null;}
+  if(S.micStream){S.micStream.getTracks().forEach(t=>t.stop());S.micStream=null;}
+  if(S.audioCtx){try{S.audioCtx.close();}catch(ex){}S.audioCtx=null;}
+  S.analyser=null;
+  const ctx=waveCanvas.getContext('2d'); ctx.clearRect(0,0,waveCanvas.width,waveCanvas.height);
+}
+
+function drawRealWave(){
+  const ctx=waveCanvas.getContext('2d'),W=waveCanvas.width,H=waveCanvas.height;
+  const buf=new Uint8Array(S.analyser.frequencyBinCount);
+  function frame(){
+    S.animFrame=requestAnimationFrame(frame);
+    S.analyser.getByteTimeDomainData(buf);
+    ctx.clearRect(0,0,W,H);
+    // Sky blue gradient stroke
+    const grad=ctx.createLinearGradient(0,0,W,0);
+    grad.addColorStop(0,'rgba(56,189,248,.9)');
+    grad.addColorStop(.5,'rgba(79,70,229,.9)');
+    grad.addColorStop(1,'rgba(124,58,237,.9)');
+    ctx.strokeStyle=grad; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.shadowColor='rgba(56,189,248,.5)'; ctx.shadowBlur=10;
+    ctx.beginPath();
+    const sw=W/buf.length; let x=0;
+    for(let i=0;i<buf.length;i++){
+      const y=(buf[i]/128)*H/2; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); x+=sw;
+    }
+    ctx.lineTo(W,H/2); ctx.stroke();
+    ctx.shadowBlur=0;
+  }
+  frame();
+}
+
+function drawIdleWave(){
+  const ctx=waveCanvas.getContext('2d'),W=waveCanvas.width,H=waveCanvas.height;
+  let t=0;
+  function frame(){
+    S.animFrame=requestAnimationFrame(frame);
+    ctx.clearRect(0,0,W,H);
+    const grad=ctx.createLinearGradient(0,0,W,0);
+    grad.addColorStop(0,'rgba(56,189,248,.7)');
+    grad.addColorStop(1,'rgba(124,58,237,.7)');
+    ctx.strokeStyle=grad; ctx.lineWidth=2.5;
+    ctx.beginPath();
+    for(let x=0;x<W;x++){
+      const y=H/2+Math.sin((x/W)*Math.PI*6+t)*16*Math.abs(Math.sin(t*.4));
+      x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke(); t+=0.055;
+  }
+  frame();
+}
+
+/* ══════════════════════════════════════════════════════
+   TRANSLATE
+══════════════════════════════════════════════════════ */
+async function doTranslate(text,src,tgt){
+  const txText=text||srcTxt.value.trim();
+  const txSrc=src||srcSel.value; const txTgt=tgt||tgtSel.value;
+  if(!txText){setStatus('Please enter text or use voice input.','err');srcTxt.focus();return null;}
+  if(txSrc===txTgt&&txSrc!=='auto'){setStatus('Source and target are the same language.','err');return null;}
+  if(txText.length>5000){setStatus('Text exceeds 5,000 character limit.','err');return null;}
+  const wasVoice=S.autoTranslate; S.autoTranslate=false;
+  if(!text) setLoading(true);
+  try{
+    let result='';
+    if(API_PROVIDER==='google_rapidapi') result=await apiGoogle(txText,txSrc,txTgt);
+    else if(API_PROVIDER==='libretranslate') result=await apiLibre(txText,txSrc,txTgt);
+    else result=await apiMyMemory(txText,txSrc,txTgt);
+    if(!text){
+      S.translated=result; renderOut(result);
+      setStatus('Translation complete!','ok');
+      setTimeout(()=>speak(result,txTgt,tgtTtsBtn),400);
+      setTimeout(()=>setStatus(''),3500);
+    }
+    S.totalT++; localStorage.setItem('lf_t',S.totalT); $('hStatT').textContent=S.totalT.toLocaleString();
+    if(wasVoice){S.totalV++;localStorage.setItem('lf_v',S.totalV);}
+    saveHist({src:txText,tgt:result,srcN:LANGS.find(l=>l.c===txSrc)?.n||txSrc,tgtN:LANGS.find(l=>l.c===txTgt)?.n||txTgt,srcC:txSrc,tgtC:txTgt,byVoice:wasVoice,ts:Date.now()});
+    return result;
+  } catch(e){
+    let m='Translation failed.';
+    if(e.message.includes('fetch')||e.message.includes('Network')) m='Network error — check your connection.';
+    else if(e.message.includes('401')||e.message.includes('403')) m='API Key error — check CONFIG.';
+    else if(e.message.includes('429')) m='Rate limit reached. Try again shortly.';
+    else if(e.message) m=e.message;
+    setStatus(m,'err'); return null;
+  } finally{ if(!text) setLoading(false); }
+}
+
+/* API ADAPTERS */
+async function apiMyMemory(text,src,tgt){
+  const s=src==='auto'?'en':src;
+  let url=`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(s+'|'+tgt)}`;
+  if(MM_EMAIL) url+=`&de=${encodeURIComponent(MM_EMAIL)}`;
+  const r=await fetch(url); const d=await r.json();
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  if(d.responseStatus!==200) throw new Error(d.responseDetails||'API error');
+  return d.responseData.translatedText;
+}
+
+async function apiGoogle(text,src,tgt){
+  if(!RAPIDAPI_KEY||RAPIDAPI_KEY==='YOUR_RAPIDAPI_KEY_HERE') throw new Error('Insert RapidAPI key in CONFIG.');
+  const body=new URLSearchParams({q:text,target:tgt,...(src!=='auto'&&{source:src})});
+  const r=await fetch('https://google-translate1.p.rapidapi.com/language/translate/v2',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','Accept-Encoding':'application/gzip','X-RapidAPI-Key':RAPIDAPI_KEY,'X-RapidAPI-Host':'google-translate1.p.rapidapi.com'},body:body.toString()});
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  const d=await r.json(); return d.data.translations[0].translatedText;
+}
+
+async function apiLibre(text,src,tgt){
+  const body={q:text,source:src==='auto'?'auto':src,target:tgt,format:'text'};
+  if(LIBRE_KEY&&LIBRE_KEY!=='YOUR_LIBRETRANSLATE_KEY_HERE') body.api_key=LIBRE_KEY;
+  const r=await fetch(LIBRE_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  const d=await r.json(); if(d.error) throw new Error(d.error); return d.translatedText;
+}
+
+/* ══════════════════════════════════════════════════════
+   AI ASSISTANT
+══════════════════════════════════════════════════════ */
+function updateAiLimit(){
+  const rem=Math.max(0,AI_FREE_LIMIT-S.aiUsed);
+  aiLimitLabel.textContent=`${rem} / ${AI_FREE_LIMIT} free queries remaining today`;
+  const pct=(rem/AI_FREE_LIMIT)*100;
+  aiLimitFill.style.width=pct+'%';
+  aiLimitFill.className='ai-limit-fill'+(pct<=33?' warn':'');
+}
+
+async function sendAiMessage(){
+  const msg=aiInput.value.trim(); if(!msg) return;
+  if(S.aiUsed>=AI_FREE_LIMIT){ showProModal('ai'); return; }
+  aiInput.value='';
+  appendAiMsg(msg,'user');
+  S.aiUsed++; sessionStorage.setItem('lf_ai_used',S.aiUsed); updateAiLimit();
+  const thinkEl=appendAiMsg('…','bot',true);
+  try{
+    let reply='';
+    if(AI_PROVIDER==='claude'){ reply=await callClaudeAI(msg); }
+    else{ reply=mockAiReply(msg); }
+    thinkEl.textContent=reply;
+  } catch(e){
+    thinkEl.textContent='Sorry, the AI assistant is unavailable. Please try again.';
+  }
+  aiMsgs.scrollTop=aiMsgs.scrollHeight;
+}
+
+function appendAiMsg(text,role,returnEl=false){
+  const div=document.createElement('div');
+  div.className=`ai-msg ${role==='user'?'user':'bot'}`;
+  const av=document.createElement('div');
+  av.className=`ai-avatar ${role==='user'?'user':'bot'}`;
+  av.textContent=role==='user'?'You':'AI';
+  const bubble=document.createElement('div');
+  bubble.className='ai-bubble'; bubble.textContent=text;
+  div.appendChild(av); div.appendChild(bubble);
+  aiMsgs.appendChild(div);
+  aiMsgs.scrollTop=aiMsgs.scrollHeight;
+  if(returnEl) return bubble;
+}
+
+/* ── Call real Claude API ── */
+async function callClaudeAI(userMsg){
+  const context=S.translated?`The current translation is:\nSource: "${srcTxt.value}"\nTranslation: "${S.translated}" (${srcSel.options[srcSel.selectedIndex].text} → ${tgtSel.options[tgtSel.selectedIndex].text})`:'';;
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01'},
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',max_tokens:400,
+      system:`You are LinguaFlow's AI translation assistant. You help users understand translations, explain grammar, provide cultural context, suggest alternatives, and answer language questions. Be concise (2-3 sentences max unless detail is needed). ${context}`,
+      messages:[{role:'user',content:userMsg}],
+    }),
+  });
+  if(!r.ok) throw new Error(`API ${r.status}`);
+  const d=await r.json(); return d.content[0].text;
+}
+
+/* ── Mock AI replies (free demo) ── */
+function mockAiReply(msg){
+  const m=msg.toLowerCase();
+  const src=srcTxt.value.trim(); const tgt=S.translated;
+  if(m.includes('formal')||m.includes('informal')) return `The translation uses ${tgt?'a neutral/formal':'standard'} register. In most contexts this phrasing is appropriate for professional communication. For casual speech you could use simpler vocabulary.`;
+  if(m.includes('grammar')) return `The grammatical structure follows standard conventions for the target language. The subject-verb-object order is preserved where possible, with appropriate conjugation for the formal register.`;
+  if(m.includes('altern')||m.includes('other way')) return `An alternative phrasing could emphasize different aspects depending on context. Upgrade to Pro for AI-powered phrasing suggestions with cultural nuance.`;
+  if(m.includes('cultur')) return `Cultural context matters here — what sounds natural in one culture may seem overly formal or informal in another. The translation preserves the intended meaning while adapting to target language norms.`;
+  if(m.includes('pronoun')||m.includes('how do i say')||m.includes('pronounce')) return `Pronunciation guidance: in most Romance languages, vowels are pronounced consistently. For tonal languages like Mandarin or Thai, tone marks indicate pitch contour. Tap "Listen" to hear the translation spoken.`;
+  if(!src) return `Please enter some text and translate it first — then I can help explain the translation, grammar, cultural context, or suggest alternatives!`;
+  return `Great question! The translation "${tgt||'(translate first)'}" captures the core meaning of your source text. For in-depth grammar analysis, cultural nuance, and unlimited AI queries, upgrade to the Pro plan.`;
+}
+
+/* ══════════════════════════════════════════════════════
+   VOICE CHAT (between 2 people)
+══════════════════════════════════════════════════════ */
+function syncVcBadges(){
+  const l1=LANGS.find(l=>l.c===vcLang1.value)?.n||vcLang1.value;
+  const l2=LANGS.find(l=>l.c===vcLang2.value)?.n||vcLang2.value;
+  $('vcLang1Badge').textContent=l1; $('vcLang2Badge').textContent=l2;
+}
+
+function startVcSpeak(person){
+  const lang=person===1?vcLang1.value:vcLang2.value;
+  const tgtLangCode=person===1?vcLang2.value:vcLang1.value;
+  vcBtn1.disabled=true; vcBtn2.disabled=true;
+  S.vcSpeaker=person;
+  openVoice(false,lang,async(capturedText)=>{
+    vcBtn1.disabled=false; vcBtn2.disabled=false;
+    if(!capturedText) return;
+    // Add original bubble
+    appendVcMsg(capturedText,'',person,'…');
+    const translated=await doTranslate(capturedText,lang,tgtLangCode);
+    if(translated){
+      // Update last bubble with translation
+      const bubbles=$('vcConversation').querySelectorAll('.vc-bubble-tgt');
+      if(bubbles.length) bubbles[bubbles.length-1].textContent=translated;
+      // Auto speak
+      setTimeout(()=>speak(translated,tgtLangCode,null),300);
+    }
+  });
+}
+
+function appendVcMsg(original,translated,person,tgtPlaceholder=''){
+  const conv=$('vcConversation');
+  // Remove empty state message
+  const emptyEl=conv.querySelector('[style*="text-align:center"]');
+  if(emptyEl) emptyEl.remove();
+  const side=person===1?'left':'right';
+  const langName=LANGS.find(l=>l.c===(person===1?vcLang1.value:vcLang2.value))?.n||'';
+  const div=document.createElement('div');
+  div.className=`vc-msg ${side}`;
+  const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=`
+    <div class="vc-avatar p${person}">${person===1?'P1':'P2'}</div>
+    <div class="vc-bubble-wrap">
+      <div class="vc-bubble">${esc(original)}</div>
+      <div class="vc-bubble-tgt">${tgtPlaceholder?'🔄 Translating…':esc(translated)}</div>
+      <div class="vc-meta">${langName} · ${time}</div>
+    </div>`;
+  conv.appendChild(div);
+  conv.scrollTop=conv.scrollHeight;
+}
+
+/* ══════════════════════════════════════════════════════
+   TTS
+══════════════════════════════════════════════════════ */
+function speak(text,lang,btn){
+  if(!('speechSynthesis' in window)){setStatus('TTS not supported.','err');return;}
+  if(!text||!text.trim()){setStatus('No text to speak.','err');return;}
+  if(S.isSpeaking){window.speechSynthesis.cancel();S.isSpeaking=false;btn&&btn.classList.remove('tts-on');return;}
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=lang==='auto'?'en-US':lang; u.rate=0.92; u.pitch=1; u.volume=1;
+  u.onstart=()=>{S.isSpeaking=true;btn&&btn.classList.add('tts-on');};
+  u.onend=()=>{S.isSpeaking=false;btn&&btn.classList.remove('tts-on');};
+  u.onerror=()=>{S.isSpeaking=false;btn&&btn.classList.remove('tts-on');};
+  window.speechSynthesis.speak(u);
+}
+
+/* ══════════════════════════════════════════════════════
+   PHRASEBOOK
+══════════════════════════════════════════════════════ */
+function renderPhrasebook(cat){
+  S.pbCat=cat;
+  const phrases=PHRASES[cat]||[];
+  const tgtCode=tgtSel.value;
+  const grid=$('pbGrid');
+  grid.innerHTML=phrases.map((p,i)=>{
+    const tgtLang=(['es','fr','de'].includes(tgtCode))?tgtCode:'es';
+    const tgtText=p[tgtLang]||p.es;
+    const tgtName=tgtLang==='es'?'Spanish':tgtLang==='fr'?'French':'German';
+    return `<div class="pb-item" data-i="${i}" data-cat="${cat}">
+      <div class="pb-src">${esc(p.en)}</div>
+      <div class="pb-tgt">${esc(tgtText)}</div>
+      <div class="pb-lang">${tgtName}</div>
+      <div class="pb-actions">
+        <button class="ibtn" onclick="pbUse(${i},'${cat}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>Translate</button>
+        <button class="ibtn" onclick="pbSpeak(${i},'${cat}','${tgtLang}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg>Listen</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function pbUse(i,cat){
+  const p=PHRASES[cat][i]; if(!p) return;
+  switchTab('translator');
+  srcTxt.value=p.en; onInput();
+  srcSel.value='en'; doTranslate();
+}
+
+function pbSpeak(i,cat,lang){
+  const p=PHRASES[cat][i]; if(!p) return;
+  const text=p[lang]||p.es;
+  speak(text,lang,null);
+}
+
+/* ══════════════════════════════════════════════════════
+   UI ACTIONS
+══════════════════════════════════════════════════════ */
+function renderOut(txt){
+  outArea.textContent=txt;
+  occEl.textContent=`${txt.length} chars`;
+}
+
+function doSwap(){
+  const sv=srcSel.value,tv=tgtSel.value;
+  if(sv==='auto'){setStatus('Cannot swap Auto-detect.','err');setTimeout(()=>setStatus(''),2200);return;}
+  const so=[...srcSel.options].map(o=>o.value),to=[...tgtSel.options].map(o=>o.value);
+  if(to.includes(sv)&&so.includes(tv)){srcSel.value=tv;tgtSel.value=sv;}
+  if(S.translated){const tmp=srcTxt.value;srcTxt.value=S.translated;onInput();S.translated=tmp;renderOut(tmp);}
+}
+
+function doClear(){
+  srcTxt.value='';onInput();S.translated='';
+  outArea.innerHTML='<span class="out-ph">Translation appears here…</span>';
+  occEl.textContent='—';setStatus('');srcTxt.focus();
+}
+
+async function doPaste(){
+  try{const t=await navigator.clipboard.readText();srcTxt.value=t;onInput();srcTxt.focus();}
+  catch{setStatus('Clipboard denied — paste manually (Ctrl+V).','err');setTimeout(()=>setStatus(''),2800);}
+}
+
+async function doCopy(){
+  if(!S.translated){setStatus('Nothing to copy yet.','err');setTimeout(()=>setStatus(''),2200);return;}
+  try{
+    await navigator.clipboard.writeText(S.translated);
+    const orig=copyBtn.innerHTML; copyBtn.classList.add('ok');
+    copyBtn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Copied!`;
+    setTimeout(()=>{copyBtn.classList.remove('ok');copyBtn.innerHTML=orig;},2000);
+  } catch{setStatus('Copy failed.','err');}
+}
+
+/* HISTORY */
+function saveHist(e){
+  S.history.unshift(e);
+  if(S.history.length>30) S.history=S.history.slice(0,30);
+  localStorage.setItem('lf_h',JSON.stringify(S.history));
+  renderHistory();
+}
+
+function renderHistory(){
+  if(!S.history.length){histList.innerHTML='<div class="hist-empty">No translations yet — start translating above!</div>';return;}
+  histList.innerHTML=S.history.map((h,i)=>`
+    <div class="hi" role="listitem" tabindex="0" data-i="${i}" title="Click to restore">
+      <div class="hs">${esc(h.src)}</div>
+      <div class="ht">${esc(h.tgt)}</div>
+      <div class="hm">
+        <span class="hb">${esc(h.srcN)} → ${esc(h.tgtN)}</span>
+        ${h.byVoice?`<span class="hv-tag"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/></svg>Voice</span>`:''}
+        <span class="ht2">${fmtT(h.ts)}</span>
+      </div>
+    </div>`).join('');
+  histList.querySelectorAll('.hi').forEach(el=>{
+    el.addEventListener('click',()=>restoreH(+el.dataset.i));
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ') restoreH(+el.dataset.i);});
+  });
+}
+
+function restoreH(i){
+  const h=S.history[i]; if(!h) return;
+  srcTxt.value=h.src; onInput(); S.translated=h.tgt; renderOut(h.tgt);
+  if([...srcSel.options].some(o=>o.value===h.srcC)) srcSel.value=h.srcC;
+  if([...tgtSel.options].some(o=>o.value===h.tgtC)) tgtSel.value=h.tgtC;
+  switchTab('translator');
+  setStatus('History restored.','ok'); setTimeout(()=>setStatus(''),2000);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function clearHistory(){S.history=[];localStorage.removeItem('lf_h');renderHistory();}
+function fmtT(ts){const d=new Date(ts);return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+', '+d.toLocaleDateString([],{month:'short',day:'numeric'});}
+
+/* PRO MODAL */
+function showProModal(ctx){
+  $('proModal').classList.add('active');
+  if(ctx==='ai'){$('modalTitle').textContent='Upgrade for Unlimited AI';$('modalSub').textContent='You\'ve used your 3 free AI queries for today. Upgrade to Pro for unlimited AI translation assistance, deeper insights, and grammar explanations.';}
+  else if(ctx==='voicechat'){$('modalTitle').textContent='Advanced Voice Chat';$('modalSub').textContent='Live voice-to-voice conversation with real-time AI interpretation, noise cancellation, and meeting transcription requires a Pro account.';}
+  else if(ctx==='traveler'){$('modalTitle').textContent='Offline Traveler Mode';$('modalSub').textContent='Download 100+ destination phrasebooks for offline use. Perfect for areas without signal.';}
+  else if(ctx==='doc'){$('modalTitle').textContent='Document Translation';$('modalSub').textContent='Upload and translate Word documents, PDFs, and images with Pro. Formatting is preserved automatically.';}
+  else{$('modalTitle').textContent='Unlock Pro Features';$('modalSub').textContent='Upgrade to Pro for unlimited AI translations, voice chat, traveler phrasebooks, document translation, and much more.';}
+}
+function closeProModal(){$('proModal').classList.remove('active');}
+
+/* KEYBOARD */
+function onKey(e){
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();doTranslate();}
+  if(e.altKey){
+    switch(e.key.toLowerCase()){
+      case 's':e.preventDefault();doSwap();break;
+      case 'c':e.preventDefault();doClear();break;
+      case 'x':e.preventDefault();doCopy();break;
+      case 'q':e.preventDefault();speak(srcTxt.value,srcSel.value,srcTtsBtn);break;
+      case 'w':e.preventDefault();speak(S.translated,tgtSel.value,tgtTtsBtn);break;
+      case 'm':e.preventDefault();openVoice(true);break;
+    }
+  }
+  if(e.key==='Escape'&&S.isListening) cancelVoice();
+  if(e.key==='Escape') closeProModal();
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
