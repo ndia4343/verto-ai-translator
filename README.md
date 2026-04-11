@@ -1,9 +1,9 @@
 # LinguaFlow AI — Multimodal Translation Platform
 
-![Node.js](https://img.shields.io/badge/Backend-Node.js-green)
-![Frontend](https://img.shields.io/badge/Frontend-HTML%20CSS%20JS-blue)
-![AI](https://img.shields.io/badge/AI-HuggingFace-yellow)
-![Deploy](https://img.shields.io/badge/Deploy-Vercel%20%7C%20Render-purple)
+![React](https://img.shields.io/badge/Frontend-React%20%7C%20Vite-blue)
+![Tailwind](https://img.shields.io/badge/Styling-Tailwind%20CSS-06B6D4)
+![AI](https://img.shields.io/badge/AI-HuggingFace%20%7C%20RAG-yellow)
+![Deploy](https://img.shields.io/badge/Deploy-Vercel-black)
 
 LinguaFlow AI is an intelligent **multimodal translation platform** designed to enable seamless communication across languages using modern AI technologies.
 
@@ -27,13 +27,11 @@ This idea was included to demonstrate how AI-powered translation tools can be de
 
 ## Live Demo
 
-Frontend deployed on Vercel
-Backend API powered by Hugging Face models
+🌐 **Live Application:**  
+https://linguaflow-ai-translator-fwbg.vercel.app/
 
-Example deployment:
-
-https://linguaflow-ai.vercel.app
-
+Frontend deployed on **:contentReference[oaicite:0]{index=0}**  
+Backend API powered by **:contentReference[oaicite:1]{index=1}** models.
 ---
 
 ## Key Features
@@ -83,26 +81,24 @@ Frontend hosted on Vercel
 Backend hosted on Render
 
 ---
-
 ## Project Structure
 
-LinguaFlow-AI-Translator
-
-frontend
-index.html — main user interface
-translator.js — text translation logic
-voice.js — speech recognition logic
-camera.js — OCR image translation
-document.js — document upload handling
-app.js — UI navigation logic
-
-backend
-server.js — backend API server
-package.json — backend dependencies
-
-README.md
-
----
+```
+linguaflow-ai-translator
+│
+├── src
+│   ├── components/      # UI Components (Nav, Toast)
+│   ├── hooks/           # useTranslate custom hook
+│   ├── pages/           # Multimodal pages (Camera, Voice, etc.)
+│   ├── styles/          # Global CSS & Tailwind
+│   ├── App.jsx          # Main Logic & Routing
+│   └── main.jsx         # Entry point
+│
+├── public/              # Static assets
+├── index.html           # Vite root file
+├── package.json         # Dependencies & Scripts
+└── vite.config.js       # Vite configuration
+```
 
 ## System Architecture
 
@@ -122,28 +118,16 @@ Frontend Display
 
 ## Running the Project Locally
 
-Clone the repository
+1. **Clone the repository**
+   ```bash
+   git clone [https://github.com/ndia4343/linguaflow-ai-translator.git](https://github.com/ndia4343/linguaflow-ai-translator.git)
+   cd linguaflow-ai-translator
 
-git clone https://github.com/yourusername/LinguaFlow-AI-Translator.git
+2. Install dependencies
+   npm install
 
-Navigate to the backend folder
-
-cd backend
-
-Install dependencies
-
-npm install
-
-Run the backend server
-
-node server.js
-
-Open the frontend interface by launching the file:
-
-frontend/index.html
-
-in your browser.
-
+3. Start Development Server
+   npm run dev
 ---
 
 ## Deployment
@@ -166,14 +150,17 @@ Real-time streaming voice translation
 Mobile application version
 Multi-language speech synthesis
 Advanced document parsing
-Translation history
+Implementing AI-driven insights to categorize user translation trends using K-Means clustering.
 User authentication and account system
 
 ---
 
 ## Author
 
-Developed as an AI-powered translation platform demonstrating **multimodal language processing** using modern web technologies and machine learning APIs.
+Developed by **Nadia Shabbir** as an AI-powered translation platform demonstrating multimodal language processing using modern web technologies and machine learning APIs.
+
+GitHub Profile:  
+https://github.com/ndia4343
 
 ---
 
