@@ -1,0 +1,46 @@
+.tt-page { min-height: 100vh; }
+.tt-body { padding: 48px 5% 80px; }
+.tt-lang-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.lang-pill select { padding: 10px 16px; border: 1.5px solid var(--border2); border-radius: var(--r); background: var(--surface); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; min-width: 180px; outline: none; transition: border 0.18s; }
+.lang-pill select:focus { border-color: var(--accent); }
+.swap-btn { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent2), var(--accent)); border: none; color: #fff; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: transform 0.35s; flex-shrink: 0; }
+.swap-btn:hover { transform: rotate(180deg); }
+.tt-box { display: grid; grid-template-columns: 1fr 2px 1fr; gap: 0; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--r3); overflow: hidden; min-height: 320px; }
+.tt-side { display: flex; flex-direction: column; padding: 0; }
+.tt-side-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 12px; font-weight: 600; font-size: 14px; color: var(--text2); border-bottom: 1px solid var(--border); }
+.tt-textarea { flex: 1; padding: 18px 20px; border: none; background: transparent; color: var(--text); font-size: 16px; line-height: 1.75; font-family: var(--font); resize: none; outline: none; min-height: 220px; }
+.tt-textarea::placeholder { color: var(--text3); }
+.tt-output { flex: 1; padding: 18px 20px; font-size: 16px; line-height: 1.75; color: var(--accent); min-height: 220px; background: rgba(0,212,255,0.025); }
+.tt-placeholder { color: var(--text3); font-size: 15px; }
+.tt-side-footer { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px 14px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
+.tt-divider { background: var(--border); width: 2px; position: relative; display: flex; align-items: center; justify-content: center; }
+.tt-loading-indicator { position: absolute; }
+.spin-dot { width: 24px; height: 24px; border: 2.5px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+.char-count { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums; }
+.char-count.warn { color: #ff9f43; }
+.tone-group { display: flex; gap: 5px; flex-wrap: wrap; }
+.tone-btn { padding: 5px 11px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text3); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.tone-btn.on, .tone-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+.translating { animation: pulse 0.8s ease-in-out infinite; }
+
+/* Quick langs */
+.quick-langs { display: flex; align-items: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.ql-label { font-size: 12px; color: var(--text3); font-weight: 600; }
+.ql-btn { padding: 6px 13px; border-radius: 7px; border: 1px solid var(--border); background: transparent; color: var(--text2); font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.ql-btn.on, .ql-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+
+/* History */
+.tt-history { margin-top: 32px; }
+.history-list { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.history-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 18px; cursor: pointer; transition: all 0.2s; }
+.history-item:hover { border-color: var(--border2); background: var(--surface2); }
+.hi-langs { font-size: 12px; font-weight: 700; color: var(--text3); letter-spacing: 0.5px; margin-bottom: 5px; }
+.hi-text { font-size: 13.5px; color: var(--text2); margin-bottom: 3px; }
+.hi-tr { font-size: 13.5px; color: var(--accent); opacity: 0.8; }
+
+@media (max-width: 700px) {
+  .tt-box { grid-template-columns: 1fr; }
+  .tt-divider { width: 100%; height: 2px; }
+  .tt-loading-indicator { left: 50%; transform: translateX(-50%); }
+  .tt-body { padding: 32px 4% 60px; }
+}
