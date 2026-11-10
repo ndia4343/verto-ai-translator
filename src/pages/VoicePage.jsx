@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslate, LANGUAGES, speak } from "../hooks/useTranslate";
+import { IconMic, IconSwap, IconVolume } from "../components/Icons";
 import "./VoicePage.css";
 
 export default function VoicePage({ showToast }) {
   const { translate } = useTranslate();
   const [srcL, setSrcL] = useState("en");
-  const [tgtL, setTgtL] = useState("es");
+  const [tgtL, setTgtL] = useState("de");
   const [listening, setListening] = useState(false);
   const [lines, setLines] = useState([]);
-  const [status, setStatus] = useState("Tap the microphone to start speaking");
+  const [status, setStatus] = useState("Audio capture ready · Zero Retention active");
   const [supported, setSupported] = useState(true);
   const [volume, setVolume] = useState(0);
   const recognitionRef = useRef(null);
@@ -33,9 +34,11 @@ export default function VoicePage({ showToast }) {
 
   const startListening = async () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { showToast("❌ Speech recognition not supported in this browser"); return; }
+    if (!SR) {
+      showToast("Speech capture requires Chrome, Edge, or Safari");
+      return;
+    }
 
-    // Try microphone + audio visualization
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const ctx = new AudioContext();
@@ -52,24 +55,36 @@ export default function VoicePage({ showToast }) {
     recognition.interimResults = true;
     recognitionRef.current = recognition;
 
-    recognition.onstart = () => { setListening(true); setStatus("🔴 Listening... Speak now"); };
-    recognition.onend = () => { setListening(false); setStatus("Tap the microphone to start speaking"); setVolume(0); cancelAnimationFrame(animRef.current); };
+    recognition.onstart = () => {
+      setListening(true);
+      setStatus("Capturing live audio stream...");
+    };
+    recognition.onend = () => {
+      setListening(false);
+      setStatus("Audio capture ready · Zero Retention active");
+      setVolume(0);
+      cancelAnimationFrame(animRef.current);
+    };
 
     recognition.onresult = async (e) => {
-      const transcript = Array.from(e.results).map(r => r[0].transcript).join("");
+      const transcript = Array.from(e.results)
+        .map((r) => r[0].transcript)
+        .join("");
       if (e.results[e.results.length - 1].isFinal && transcript.trim()) {
-        setStatus("⏳ Translating...");
+        setStatus("Compiling localized segment...");
         const r = await translate({ text: transcript, sourceLang: srcL, targetLang: tgtL });
         if (r) {
-          const newLine = { src: transcript, tgt: r, srcL, tgtL };
-          setLines(prev => [...prev, newLine]);
+          setLines((prev) => [...prev, { src: transcript, tgt: r, srcL, tgtL }]);
           speak(r, tgtL);
-          setStatus("✅ Done — tap mic to continue");
+          setStatus("Segment logged to transcript");
         }
       }
     };
 
-    recognition.onerror = (e) => { setStatus(`❌ ${e.error === "no-speech" ? "No speech detected" : e.error}`); setListening(false); };
+    recognition.onerror = (e) => {
+      setStatus(e.error === "no-speech" ? "No speech detected" : `Audio error: ${e.error}`);
+      setListening(false);
+    };
     recognition.start();
   };
 
@@ -77,63 +92,92 @@ export default function VoicePage({ showToast }) {
     recognitionRef.current?.stop();
     cancelAnimationFrame(animRef.current);
     audioCtxRef.current?.close().catch(() => {});
-    setListening(false); setVolume(0);
+    setListening(false);
+    setVolume(0);
   };
 
-  const toggle = () => { listening ? stopListening() : startListening(); };
-  const swap = () => { const t = srcL; setSrcL(tgtL); setTgtL(t); };
-  const clear = () => setLines([]);
+  const toggle = () => (listening ? stopListening() : startListening());
+  const swap = () => {
+    const t = srcL;
+    setSrcL(tgtL);
+    setTgtL(t);
+  };
 
   return (
     <div className="voice-page">
       <div className="page-hero">
         <div className="inner">
-          <span className="sec-tag tag-violet">🎙️ Voice Translator</span>
-          <h1>Speak. <span className="grad-text">Translated.</span><br />Instantly.</h1>
-          <p>Real-time voice-to-translation using your microphone. Speak in any language, hear the translation automatically.</p>
+          <span className="sec-tag">REAL-TIME MEDIA STREAM</span>
+          <h1>Briefing &amp; Audio Localization</h1>
+          <p>
+            Capture live compliance briefings and executive sessions with real-time bilingual transcription and TM Bank glossary locking.
+          </p>
         </div>
       </div>
 
       <div className="voice-body">
-        <div className="inner" style={{ maxWidth: 680, margin: "0 auto" }}>
-          {/* Lang selector */}
+        <div className="inner" style={{ maxWidth: 740 }}>
           <div className="v-lang-row">
             <div className="vlb">
-              <label>Speaking</label>
-              <select className="inp" value={srcL} onChange={e => setSrcL(e.target.value)}>
-                {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
+              <label>SOURCE LOCALE</label>
+              <select className="inp" value={srcL} onChange={(e) => setSrcL(e.target.value)}>
+                {LANGUAGES.map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.locale} — {l.label}
+                  </option>
+                ))}
               </select>
             </div>
-            <button className="swap-btn" onClick={swap}>⇄</button>
+            <button className="swap-btn" onClick={swap} title="Swap locales">
+              <IconSwap size={14} />
+            </button>
             <div className="vlb">
-              <label>Translate to</label>
-              <select className="inp" value={tgtL} onChange={e => setTgtL(e.target.value)}>
-                {LANGUAGES.filter(l => l.code !== srcL).map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
+              <label>TARGET LOCALE</label>
+              <select className="inp" value={tgtL} onChange={(e) => setTgtL(e.target.value)}>
+                {LANGUAGES.filter((l) => l.code !== srcL).map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.locale} — {l.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
-          {/* Mic */}
           <div className="mic-center">
             {!supported ? (
               <div className="unsupported-box">
-                <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Browser not supported</div>
-                <div style={{ fontSize: 13.5, color: "var(--text3)" }}>Use Chrome, Edge, or Safari for voice translation.</div>
+                <div style={{ fontWeight: 600, marginBottom: 6 }}>Web Speech API unavailable</div>
+                <div style={{ fontSize: 13, color: "rgba(254,250,224,0.6)" }}>
+                  Use Chrome, Edge, or Safari to capture live audio briefings.
+                </div>
               </div>
             ) : (
               <>
                 <div className="mic-rings">
-                  {[1,2,3].map(i => <div key={i} className={`mic-ring mic-ring-${i} ${listening ? "active" : ""}`} style={listening ? { transform: `scale(${1 + volume * i * 0.3})` } : {}} />)}
-                  <button className={`big-mic ${listening ? "rec" : ""}`} onClick={toggle} aria-label={listening ? "Stop" : "Start"}>
-                    {listening ? "⏹" : "🎙️"}
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className={`mic-ring mic-ring-${i} ${listening ? "active" : ""}`}
+                      style={listening ? { transform: `scale(${1 + volume * i * 0.25})` } : {}}
+                    />
+                  ))}
+                  <button
+                    className={`big-mic ${listening ? "rec" : ""}`}
+                    onClick={toggle}
+                    aria-label={listening ? "Stop capture" : "Start capture"}
+                  >
+                    <IconMic size={26} />
                   </button>
                 </div>
                 <div className="mic-status-txt">{status}</div>
                 {listening && (
                   <div className="wave-bars">
                     {[...Array(12)].map((_, i) => (
-                      <div key={i} className="wave-bar" style={{ animationDelay: `${i * 0.08}s`, height: `${20 + Math.random() * 40}%` }} />
+                      <div
+                        key={i}
+                        className="wave-bar"
+                        style={{ animationDelay: `${i * 0.08}s`, height: `${28 + (i % 4) * 14}%` }}
+                      />
                     ))}
                   </div>
                 )}
@@ -141,43 +185,61 @@ export default function VoicePage({ showToast }) {
             )}
           </div>
 
-          {/* Transcript */}
           <div className="v-transcript-box">
             <div className="vt-header">
-              <span style={{ fontWeight: 700, fontSize: 14 }}>Conversation</span>
+              <span>SESSION TRANSCRIPT LOG</span>
               <div style={{ display: "flex", gap: 6 }}>
-                <button className="btn-ghost" onClick={() => { lines.forEach(l => speak(l.tgt, l.tgtL)); }}>🔊 Replay all</button>
-                <button className="btn-ghost" onClick={clear}>🗑 Clear</button>
+                <button
+                  className="btn-ghost"
+                  onClick={() => lines.forEach((l) => speak(l.tgt, l.tgtL))}
+                  disabled={lines.length === 0}
+                >
+                  <IconVolume size={13} />
+                  <span>Replay all</span>
+                </button>
+                <button className="btn-ghost" onClick={() => setLines([])}>
+                  Clear
+                </button>
               </div>
             </div>
             <div className="vt-content">
               {lines.length === 0 ? (
-                <div style={{ textAlign: "center", color: "var(--text3)", padding: "28px 0", fontSize: 14 }}>Your conversation appears here...</div>
-              ) : lines.map((line, i) => {
-                const sL = LANGUAGES.find(l => l.code === line.srcL);
-                const tL = LANGUAGES.find(l => l.code === line.tgtL);
-                return (
-                  <div key={i} className="vt-line fade-in">
-                    <div className="vt-src">
-                      <div className="vt-lbl">{sL?.flag} You ({sL?.label})</div>
-                      <div className="vt-text">{line.src}</div>
+                <div style={{ textAlign: "center", color: "rgba(254,250,224,0.5)", padding: "28px 0", fontSize: 13, fontFamily: "var(--mono)" }}>
+                  Captured audio segments and localized diffs appear here.
+                </div>
+              ) : (
+                lines.map((line, i) => {
+                  const sL = LANGUAGES.find((l) => l.code === line.srcL);
+                  const tL = LANGUAGES.find((l) => l.code === line.tgtL);
+                  return (
+                    <div key={i} className="vt-line fade-in">
+                      <div className="vt-src">
+                        <div className="vt-lbl">SOURCE [{sL?.locale}]</div>
+                        <div className="vt-text">{line.src}</div>
+                      </div>
+                      <div className="vt-tgt">
+                        <div className="vt-lbl">LOCALIZED [{tL?.locale}]</div>
+                        <div className="vt-text vt-text-accent">{line.tgt}</div>
+                        <button
+                          className="btn-ghost"
+                          style={{ marginTop: 8 }}
+                          onClick={() => speak(line.tgt, line.tgtL)}
+                        >
+                          <IconVolume size={12} />
+                          <span>Synthesize</span>
+                        </button>
+                      </div>
                     </div>
-                    <div className="vt-tgt">
-                      <div className="vt-lbl">{tL?.flag} Translation ({tL?.label})</div>
-                      <div className="vt-text vt-text-accent">{line.tgt}</div>
-                      <button className="btn-ghost" style={{ fontSize: 12, marginTop: 6 }} onClick={() => speak(line.tgt, line.tgtL)}>🔊 Listen</button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 
-          {/* Tips */}
           <div className="voice-tips">
-            <div className="tip">🎧 Use headphones to prevent echo</div>
-            <div className="tip">🗣️ Speak clearly and at normal pace</div>
-            <div className="tip">📶 Works best with a stable connection</div>
+            <div className="tip">AES-GCM encrypted transport</div>
+            <div className="tip">Zero audio payload retention</div>
+            <div className="tip">TM Bank terminology enforced</div>
           </div>
         </div>
       </div>

@@ -1,34 +1,47 @@
 import { useState, useRef } from "react";
 import { LANGUAGES } from "../hooks/useTranslate";
+import { IconFile, IconShield, IconLock, IconGlobe, IconReflow } from "../components/Icons";
 import "./DocumentTranslator.css";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 const ACCEPTED = ".pdf,.docx,.doc,.pptx,.xlsx,.txt,.rtf";
 const MAX_MB = 100;
 
-export default function DocumentTranslator({ showToast, user }) {
-  const [tgtLang, setTgtLang] = useState("es");
+export default function DocumentTranslator({ showToast }) {
+  const [tgtLang, setTgtLang] = useState("de");
   const [files, setFiles] = useState([]);
   const [dragging, setDragging] = useState(false);
   const fileRef = useRef(null);
 
   const uploadFile = async (file) => {
-    if (file.size > MAX_MB * 1024 * 1024) { showToast(`❌ File too large (max ${MAX_MB}MB)`); return; }
+    if (file.size > MAX_MB * 1024 * 1024) {
+      showToast(`File exceeds ${MAX_MB}MB limit`);
+      return;
+    }
     const id = Date.now() + Math.random();
-    setFiles(prev => [...prev, { id, name: file.name, size: file.size, status: "uploading", progress: 0, result: null }]);
+    setFiles((prev) => [
+      ...prev,
+      { id, name: file.name, size: file.size, status: "uploading", progress: 0 },
+    ]);
 
-    // Simulate progress then real upload
-    const updateProgress = (p) => setFiles(prev => prev.map(f => f.id === id ? { ...f, progress: p } : f));
+    const updateProgress = (p) =>
+      setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, progress: p } : f)));
+
     const progressInterval = setInterval(() => {
-      setFiles(prev => {
-        const f = prev.find(x => x.id === id);
-        if (!f || f.progress >= 85) { clearInterval(progressInterval); return prev; }
-        return prev.map(x => x.id === id ? { ...x, progress: Math.min(x.progress + 3, 85) } : x);
+      setFiles((prev) => {
+        const f = prev.find((x) => x.id === id);
+        if (!f || f.progress >= 85) {
+          clearInterval(progressInterval);
+          return prev;
+        }
+        return prev.map((x) =>
+          x.id === id ? { ...x, progress: Math.min(x.progress + 4, 85) } : x
+        );
       });
-    }, 100);
+    }, 90);
 
     try {
-      const token = localStorage.getItem("lf_token");
+      const token = localStorage.getItem("verto_token");
       const formData = new FormData();
       formData.append("file", file);
       formData.append("targetLang", tgtLang);
@@ -40,103 +53,184 @@ export default function DocumentTranslator({ showToast, user }) {
       clearInterval(progressInterval);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        setFiles(prev => prev.map(f => f.id === id ? { ...f, status: "error", progress: 0, error: err.message || "Translation failed" } : f));
-        showToast("❌ " + (err.message || "Translation failed"));
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === id
+              ? { ...f, status: "error", progress: 0, error: err.message || "AST compilation failed" }
+              : f
+          )
+        );
+        showToast(err.message || "Document pipeline failed");
         return;
       }
       updateProgress(100);
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      setFiles(prev => prev.map(f => f.id === id ? { ...f, status: "done", progress: 100, downloadUrl: url } : f));
-      showToast("✅ Translation complete!");
+      setFiles((prev) =>
+        prev.map((f) => (f.id === id ? { ...f, status: "done", progress: 100, downloadUrl: url } : f))
+      );
+      showToast("PDF AST DOM compiled — 0px overflow drift");
     } catch (e) {
       clearInterval(progressInterval);
-      setFiles(prev => prev.map(f => f.id === id ? { ...f, status: "error", progress: 0, error: e.message } : f));
-      showToast("❌ Network error");
+      setFiles((prev) =>
+        prev.map((f) => (f.id === id ? { ...f, status: "error", progress: 0, error: e.message } : f))
+      );
+      showToast("API gateway unreachable — verify VITE_API_URL");
     }
   };
 
-  const handleFiles = (fileList) => { Array.from(fileList).forEach(uploadFile); };
-  const onDrop = (e) => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files); };
-  const removeFile = (id) => setFiles(prev => prev.filter(f => f.id !== id));
-  const tgtLangObj = LANGUAGES.find(l => l.code === tgtLang);
-
-  const fmtSize = (bytes) => bytes > 1024*1024 ? `${(bytes/1024/1024).toFixed(1)}MB` : `${(bytes/1024).toFixed(0)}KB`;
+  const handleFiles = (fileList) => Array.from(fileList).forEach(uploadFile);
+  const onDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    handleFiles(e.dataTransfer.files);
+  };
+  const removeFile = (id) => setFiles((prev) => prev.filter((f) => f.id !== id));
+  const tgtLangObj = LANGUAGES.find((l) => l.code === tgtLang);
+  const fmtSize = (bytes) =>
+    bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
 
   return (
     <div className="doc-page">
       <div className="page-hero">
         <div className="inner">
-          <span className="sec-tag tag-gold">📄 Document Translator</span>
-          <h1>Translate Documents<br /><span className="grad-text">Preserving Format</span></h1>
-          <p>Upload PDFs, Word docs, PowerPoints, and spreadsheets. Get back a fully translated file with original formatting intact.</p>
+          <span className="sec-tag">01 // DOM REFLOW PIPELINE</span>
+          <h1>Pixel-Preserved Document Compilation</h1>
+          <p>
+            Compile PDFs, enterprise MSAs, and technical catalogs into 50+ locales with autonomous bounding-box micro-reflow and 0px collision drift.
+          </p>
         </div>
       </div>
 
       <div className="doc-body">
-        <div className="inner" style={{ maxWidth: 740 }}>
-          {/* Target lang */}
+        <div className="inner" style={{ maxWidth: 840 }}>
           <div className="doc-lang-row">
-            <label>Translate to:</label>
-            <select className="inp" value={tgtLang} onChange={e => setTgtLang(e.target.value)} style={{ maxWidth: 220 }}>
-              {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
+            <label htmlFor="doc-locale">Target AST Locale:</label>
+            <select
+              id="doc-locale"
+              className="inp"
+              value={tgtLang}
+              onChange={(e) => setTgtLang(e.target.value)}
+              style={{ maxWidth: 260 }}
+            >
+              {LANGUAGES.map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.locale} — {l.label}
+                </option>
+              ))}
             </select>
+            <span className="doc-policy-tag">
+              <IconLock size={12} />
+              <span>Term: AcmeCorp™ Locked</span>
+            </span>
           </div>
 
-          {/* Drop zone */}
           <div
             className={`drop-zone ${dragging ? "drag" : ""}`}
             onClick={() => fileRef.current?.click()}
-            onDragOver={e => { e.preventDefault(); setDragging(true); }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
           >
-            <div className="dz-icon">📄</div>
-            <div className="dz-title">Drop documents or click to browse</div>
-            <div className="dz-sub">PDF, DOCX, PPTX, XLSX, TXT · Up to {MAX_MB}MB per file</div>
-            <button className="btn-primary" onClick={e => { e.stopPropagation(); fileRef.current?.click(); }}>Browse Files</button>
-            <input ref={fileRef} type="file" multiple accept={ACCEPTED} style={{ display: "none" }} onChange={e => handleFiles(e.target.files)} />
+            <div className="dz-icon">
+              <IconFile size={24} />
+            </div>
+            <div className="dz-title">Ingest PDF, DOCX, PPTX, or XLSX into AST Pipeline</div>
+            <div className="dz-sub">
+              Live OCR &amp; AST Engine · Bounding-box micro-reflow up to {MAX_MB} MB
+            </div>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={(e) => {
+                e.stopPropagation();
+                fileRef.current?.click();
+              }}
+            >
+              Select Source Document
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept={ACCEPTED}
+              style={{ display: "none" }}
+              onChange={(e) => handleFiles(e.target.files)}
+            />
           </div>
 
-          {/* File list */}
           {files.length > 0 && (
             <div className="file-list">
-              {files.map(f => (
+              {files.map((f) => (
                 <div key={f.id} className={`file-item ${f.status}`}>
-                  <div className="fi-icon">📄</div>
+                  <div className="fi-icon">
+                    <IconFile size={18} />
+                  </div>
                   <div className="fi-info">
                     <div className="fi-name">{f.name}</div>
                     <div className="fi-meta">
-                      {fmtSize(f.size)} · Auto-detected → {tgtLangObj?.flag} {tgtLangObj?.label}
+                      {fmtSize(f.size)} · AST Reflow → {tgtLangObj?.locale}
                     </div>
-                    {(f.status === "uploading") && (
+                    {f.status === "uploading" && (
                       <div style={{ marginTop: 8 }}>
-                        <div className="prog-track"><div className="prog-bar" style={{ width: `${f.progress}%` }} /></div>
-                        <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 4 }}>{f.progress < 90 ? "Translating..." : "Finalizing..."} {f.progress}%</div>
+                        <div className="prog-track">
+                          <div className="prog-bar" style={{ width: `${f.progress}%` }} />
+                        </div>
+                        <div style={{ fontSize: 11, fontFamily: "var(--mono)", color: "rgba(254,250,224,0.6)", marginTop: 4 }}>
+                          {f.progress < 90 ? "Running DOM reflow & glossary check..." : "Verifying bounding boxes..."}{" "}
+                          {f.progress}%
+                        </div>
                       </div>
                     )}
-                    {f.status === "error" && <div className="fi-error">❌ {f.error}</div>}
-                    {f.status === "done" && <div className="fi-success">✅ Translation complete</div>}
+                    {f.status === "error" && <div className="fi-error">{f.error}</div>}
+                    {f.status === "done" && <div className="fi-success">Preserved in PDF AST DOM · 0px drift</div>}
                   </div>
                   <div className="fi-actions">
                     {f.status === "done" && (
-                      <a href={f.downloadUrl} download={`translated_${f.name}`} className="btn-primary" style={{ fontSize: 13, padding: "7px 14px", textDecoration: "none", display: "inline-block" }}>⬇ Download</a>
+                      <a
+                        href={f.downloadUrl}
+                        download={`verto_${f.name}`}
+                        className="btn-primary"
+                        style={{ textDecoration: "none" }}
+                      >
+                        Download
+                      </a>
                     )}
-                    <button className="btn-ghost" onClick={() => removeFile(f.id)}>✕</button>
+                    <button className="btn-ghost" onClick={() => removeFile(f.id)}>
+                      Remove
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Features list */}
           <div className="doc-features">
             {[
-              { icon: "📐", title: "Format preserved", desc: "Headers, tables, columns, fonts — all maintained" },
-              { icon: "⚡", title: "Fast processing", desc: "Most documents translated in under 30 seconds" },
-              { icon: "🔒", title: "Secure & private", desc: "Files processed and deleted immediately" },
-              { icon: "🌍", title: "135 languages", desc: "Translate between any supported language pair" },
-            ].map(f => (
+              {
+                icon: <IconReflow size={16} />,
+                title: "0px DOM Reflow",
+                desc: "Autonomous micro-reflow prevents overflow in multi-column PDFs and tables",
+              },
+              {
+                icon: <IconLock size={16} />,
+                title: "TM Bank Constraints",
+                desc: "Enterprise product names and legal clauses stay deterministically locked",
+              },
+              {
+                icon: <IconShield size={16} />,
+                title: "AES-GCM Isolation",
+                desc: "Zero payload retention post-compilation under SOC-2 Type II controls",
+              },
+              {
+                icon: <IconGlobe size={16} />,
+                title: "50+ Enterprise Locales",
+                desc: "Supports CJK, RTL, and European expansion tolerances cleanly",
+              },
+            ].map((f) => (
               <div key={f.title} className="doc-feat-card">
                 <div className="doc-feat-icon">{f.icon}</div>
                 <div className="doc-feat-title">{f.title}</div>

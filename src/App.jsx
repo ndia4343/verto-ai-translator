@@ -1,39 +1,61 @@
-import { useState, useEffect } from "react";
-import Nav from "./components/Nav";
+import { useState } from "react";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import MobileNav from "./components/MobileNav";
 import Home from "./pages/Home";
 import TextTranslator from "./pages/TextTranslator";
 import CameraTranslator from "./pages/CameraTranslator";
 import DocumentTranslator from "./pages/DocumentTranslator";
 import VoicePage from "./pages/VoicePage";
-import PricingPage from "./pages/PricingPage";
+import Pricing from "./pages/Pricing";
 import PhrasebookPage from "./pages/PhrasebookPage";
 import Toast from "./components/Toast";
-import "./styles/globals.css";
+import "./index.css";
 
 export default function App() {
   const [page, setPage] = useState("home");
-  const [theme, setTheme] = useState("dark");
   const [user, setUser] = useState(null);
   const [toast, setToast] = useState(null);
 
-  useEffect(() => {
-    document.body.className = theme === "light" ? "light" : "";
-  }, [theme]);
-
   const showToast = (msg) => {
     setToast(msg);
-    setTimeout(() => setToast(null), 2200);
+    setTimeout(() => setToast(null), 2400);
   };
 
-  const pages = { home: Home, "text-translator": TextTranslator, "camera-translator": CameraTranslator, "document-translator": DocumentTranslator, voice: VoicePage, pricing: PricingPage, phrasebook: PhrasebookPage };
+  const jumpToTelemetry = () => {
+    setPage("home");
+    setTimeout(() => {
+      document.getElementById("cluster-telemetry")?.scrollIntoView({ behavior: "smooth" });
+    }, 60);
+  };
+
+  const pages = {
+    home: Home,
+    "text-translator": TextTranslator,
+    "camera-translator": CameraTranslator,
+    "document-translator": DocumentTranslator,
+    voice: VoicePage,
+    pricing: Pricing,
+    phrasebook: PhrasebookPage,
+  };
+
   const PageComponent = pages[page] || Home;
 
   return (
-    <div className={`app ${theme}`}>
-      <Nav page={page} setPage={setPage} theme={theme} setTheme={setTheme} user={user} setUser={setUser} showToast={showToast} />
+    <div className="app">
+      <Navbar
+        page={page}
+        setPage={setPage}
+        user={user}
+        setUser={setUser}
+        showToast={showToast}
+        onJumpTelemetry={jumpToTelemetry}
+      />
       <main>
         <PageComponent setPage={setPage} showToast={showToast} user={user} />
       </main>
+      <Footer setPage={setPage} />
+      <MobileNav page={page} setPage={setPage} onJumpTelemetry={jumpToTelemetry} />
       {toast && <Toast message={toast} />}
     </div>
   );

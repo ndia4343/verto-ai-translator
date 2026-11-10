@@ -12,10 +12,13 @@ export function useTranslate() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("lf_token");
+      const token = localStorage.getItem("verto_token");
       const res = await fetch(`${API}/api/translate`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ text, sourceLang, targetLang }),
       });
       const data = await res.json();
@@ -43,48 +46,54 @@ export function useTranslate() {
 }
 
 export const LANGUAGES = [
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "es", label: "Spanish", flag: "🇪🇸" },
-  { code: "fr", label: "French", flag: "🇫🇷" },
-  { code: "de", label: "German", flag: "🇩🇪" },
-  { code: "it", label: "Italian", flag: "🇮🇹" },
-  { code: "pt", label: "Portuguese", flag: "🇧🇷" },
-  { code: "ru", label: "Russian", flag: "🇷🇺" },
-  { code: "ja", label: "Japanese", flag: "🇯🇵" },
-  { code: "ko", label: "Korean", flag: "🇰🇷" },
-  { code: "zh", label: "Chinese", flag: "🇨🇳" },
-  { code: "ar", label: "Arabic", flag: "🇸🇦" },
-  { code: "hi", label: "Hindi", flag: "🇮🇳" },
-  { code: "ur", label: "Urdu", flag: "🇵🇰" },
-  { code: "tr", label: "Turkish", flag: "🇹🇷" },
-  { code: "pl", label: "Polish", flag: "🇵🇱" },
-  { code: "nl", label: "Dutch", flag: "🇳🇱" },
-  { code: "sv", label: "Swedish", flag: "🇸🇪" },
-  { code: "da", label: "Danish", flag: "🇩🇰" },
-  { code: "fi", label: "Finnish", flag: "🇫🇮" },
-  { code: "no", label: "Norwegian", flag: "🇳🇴" },
-  { code: "th", label: "Thai", flag: "🇹🇭" },
-  { code: "vi", label: "Vietnamese", flag: "🇻🇳" },
-  { code: "id", label: "Indonesian", flag: "🇮🇩" },
-  { code: "ms", label: "Malay", flag: "🇲🇾" },
-  { code: "fa", label: "Persian", flag: "🇮🇷" },
+  { code: "en", locale: "en-US", label: "English (US)" },
+  { code: "de", locale: "de-DE", label: "German (DE)" },
+  { code: "fr", locale: "fr-FR", label: "French (FR)" },
+  { code: "es", locale: "es-ES", label: "Spanish (ES)" },
+  { code: "ja", locale: "ja-JP", label: "Japanese (JP)" },
+  { code: "it", locale: "it-IT", label: "Italian (IT)" },
+  { code: "pt", locale: "pt-BR", label: "Portuguese (BR)" },
+  { code: "nl", locale: "nl-NL", label: "Dutch (NL)" },
+  { code: "ko", locale: "ko-KR", label: "Korean (KR)" },
+  { code: "zh", locale: "zh-CN", label: "Chinese (CN)" },
+  { code: "sv", locale: "sv-SE", label: "Swedish (SE)" },
+  { code: "pl", locale: "pl-PL", label: "Polish (PL)" },
+  { code: "da", locale: "da-DK", label: "Danish (DK)" },
+  { code: "fi", locale: "fi-FI", label: "Finnish (FI)" },
+  { code: "no", locale: "nb-NO", label: "Norwegian (NO)" },
+  { code: "ar", locale: "ar-SA", label: "Arabic (SA)" },
+  { code: "tr", locale: "tr-TR", label: "Turkish (TR)" },
+  { code: "hi", locale: "hi-IN", label: "Hindi (IN)" },
+  { code: "ur", locale: "ur-PK", label: "Urdu (PK)" },
+  { code: "ru", locale: "ru-RU", label: "Russian (RU)" },
+  { code: "vi", locale: "vi-VN", label: "Vietnamese (VN)" },
+  { code: "th", locale: "th-TH", label: "Thai (TH)" },
+  { code: "id", locale: "id-ID", label: "Indonesian (ID)" },
+  { code: "ms", locale: "ms-MY", label: "Malay (MY)" },
+  { code: "fa", locale: "fa-IR", label: "Persian (IR)" },
 ];
 
 export function speak(text, lang = "en") {
-  if (!window.speechSynthesis) return;
+  if (!window.speechSynthesis || !text) return;
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang = lang;
-  utt.rate = 0.9;
+  utt.rate = 0.95;
   window.speechSynthesis.speak(utt);
 }
 
 export function copyText(text, showToast) {
   if (!text) return;
-  navigator.clipboard?.writeText(text).then(() => showToast?.("📋 Copied!")).catch(() => {
-    const ta = document.createElement("textarea");
-    ta.value = text; document.body.appendChild(ta); ta.select();
-    document.execCommand("copy"); document.body.removeChild(ta);
-    showToast?.("📋 Copied!");
-  });
+  navigator.clipboard
+    ?.writeText(text)
+    .then(() => showToast?.("Copied to clipboard"))
+    .catch(() => {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      showToast?.("Copied to clipboard");
+    });
 }

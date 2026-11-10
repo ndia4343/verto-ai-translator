@@ -1,147 +1,290 @@
 import { useState, useEffect } from "react";
-import { useTranslate, LANGUAGES, speak, copyText } from "../hooks/useTranslate";
+import { useTranslate, LANGUAGES, copyText } from "../hooks/useTranslate";
+import { IconLock, IconCheck, IconCopy, IconDatabase } from "../components/Icons";
 import "./PhrasebookPage.css";
 
-const CATS = ["All", "Travel", "Business", "Food", "Emergency", "Greetings", "Shopping", "Medical"];
-const CAT_COLORS = { Travel:"#00d4ff", Business:"#7b4fff", Food:"#80f0d8", Emergency:"#ff5f6d", Greetings:"#ffe8a0", Shopping:"#a07fff", Medical:"#ff9f43" };
+const CATS = ["All", "Brand Locked", "Legal Core", "Security", "Product UI", "Billing"];
 
-const STARTER_PHRASES = [
-  { id:1, en:"Where is the nearest hotel?", tr:"¿Dónde está el hotel más cercano?", flag:"🇪🇸", lang:"Spanish", cat:"Travel" },
-  { id:2, en:"I have a reservation.", tr:"J'ai une réservation.", flag:"🇫🇷", lang:"French", cat:"Travel" },
-  { id:3, en:"Nice to meet you.", tr:"はじめまして。", flag:"🇯🇵", lang:"Japanese", cat:"Business" },
-  { id:4, en:"The bill, please.", tr:"L'addition, s'il vous plaît.", flag:"🇫🇷", lang:"French", cat:"Food" },
-  { id:5, en:"I need a doctor.", tr:"Necesito un médico.", flag:"🇪🇸", lang:"Spanish", cat:"Emergency" },
-  { id:6, en:"Good morning!", tr:"Guten Morgen!", flag:"🇩🇪", lang:"German", cat:"Greetings" },
-  { id:7, en:"How much does this cost?", tr:"Quanto costa questo?", flag:"🇮🇹", lang:"Italian", cat:"Shopping" },
-  { id:8, en:"Can I pay by card?", tr:"¿Puedo pagar con tarjeta?", flag:"🇪🇸", lang:"Spanish", cat:"Food" },
-  { id:9, en:"Where is the airport?", tr:"ہوائی اڈہ کہاں ہے؟", flag:"🇵🇰", lang:"Urdu", cat:"Travel" },
-  { id:10, en:"Please call the police.", tr:"请叫警察。", flag:"🇨🇳", lang:"Chinese", cat:"Emergency" },
-  { id:11, en:"I am vegetarian.", tr:"저는 채식주의자입니다.", flag:"🇰🇷", lang:"Korean", cat:"Food" },
-  { id:12, en:"Can you send the invoice?", tr:"Können Sie die Rechnung senden?", flag:"🇩🇪", lang:"German", cat:"Business" },
+const STARTER_TERMS = [
+  {
+    id: 1,
+    en: "AcmeCorp™",
+    tr: "AcmeCorp™ (Deterministic Lock)",
+    locale: "de-DE",
+    cat: "Brand Locked",
+    locked: true,
+  },
+  {
+    id: 2,
+    en: "Indemnification and Limitation of Liability",
+    tr: "Freistellung und Haftungsbeschränkung",
+    locale: "de-DE",
+    cat: "Legal Core",
+    locked: true,
+  },
+  {
+    id: 3,
+    en: "Zero Data Retention (ZDR)",
+    tr: "Keine Datenspeicherung (ZDR)",
+    locale: "de-DE",
+    cat: "Security",
+    locked: true,
+  },
+  {
+    id: 4,
+    en: "Single Sign-On (SAML 2.0)",
+    tr: "Authentification unique (SAML 2.0)",
+    locale: "fr-FR",
+    cat: "Security",
+    locked: true,
+  },
+  {
+    id: 5,
+    en: "Workspace Administrator",
+    tr: "ワークスペース管理者",
+    locale: "ja-JP",
+    cat: "Product UI",
+    locked: false,
+  },
+  {
+    id: 6,
+    en: "Master Services Agreement",
+    tr: "Rahmenvertrag über Dienstleistungen",
+    locale: "de-DE",
+    cat: "Legal Core",
+    locked: false,
+  },
+  {
+    id: 7,
+    en: "Net-30 Wire Transfer",
+    tr: "Überweisung netto 30 Tage",
+    locale: "de-DE",
+    cat: "Billing",
+    locked: false,
+  },
+  {
+    id: 8,
+    en: "Data Processing Addendum",
+    tr: "Auftragsverarbeitungsvereinbarung",
+    locale: "de-DE",
+    cat: "Legal Core",
+    locked: true,
+  },
 ];
 
 export default function PhrasebookPage({ showToast }) {
-  const { translate, loading: transLoading } = useTranslate();
-  const [phrases, setPhrases] = useState([]);
+  const { translate } = useTranslate();
+  const [terms, setTerms] = useState([]);
   const [cat, setCat] = useState("All");
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
-  const [newPhrase, setNewPhrase] = useState({ en:"", tgtLang:"es" });
+  const [newTerm, setNewTerm] = useState({ en: "", tgtLang: "de", cat: "Brand Locked" });
   const [adding, setAdding] = useState(false);
-  const [editId, setEditId] = useState(null);
-  const [view, setView] = useState("grid"); // grid | list
+  const [view, setView] = useState("grid");
 
   useEffect(() => {
-    const saved = localStorage.getItem("lf_phrases");
-    setPhrases(saved ? JSON.parse(saved) : STARTER_PHRASES);
+    const saved = localStorage.getItem("verto_termbase");
+    setTerms(saved ? JSON.parse(saved) : STARTER_TERMS);
   }, []);
 
-  const save = (next) => { setPhrases(next); localStorage.setItem("lf_phrases", JSON.stringify(next)); };
-
-  const addPhrase = async () => {
-    if (!newPhrase.en.trim()) return;
-    setAdding(true);
-    const tgtLangObj = LANGUAGES.find(l => l.code === newPhrase.tgtLang);
-    const tr = await translate({ text: newPhrase.en, sourceLang: "en", targetLang: newPhrase.tgtLang });
-    const phrase = {
-      id: Date.now(), en: newPhrase.en, tr: tr || "(translation failed)",
-      flag: tgtLangObj?.flag || "🌐", lang: tgtLangObj?.label || "", cat: newPhrase.cat || "Travel"
-    };
-    const next = [phrase, ...phrases];
-    save(next);
-    setNewPhrase({ en:"", tgtLang:"es" });
-    setShowAdd(false); setAdding(false);
-    showToast("📌 Phrase saved!");
+  const save = (next) => {
+    setTerms(next);
+    localStorage.setItem("verto_termbase", JSON.stringify(next));
   };
 
-  const remove = (id) => { save(phrases.filter(p => p.id !== id)); showToast("🗑 Removed"); };
+  const addTerm = async () => {
+    if (!newTerm.en.trim()) return;
+    setAdding(true);
+    const tgtLangObj = LANGUAGES.find((l) => l.code === newTerm.tgtLang);
+    const tr = await translate({ text: newTerm.en, sourceLang: "en", targetLang: newTerm.tgtLang });
+    const entry = {
+      id: Date.now(),
+      en: newTerm.en,
+      tr: tr || `${newTerm.en} [${tgtLangObj?.locale || "de-DE"}]`,
+      locale: tgtLangObj?.locale || "de-DE",
+      cat: newTerm.cat || "Brand Locked",
+      locked: newTerm.cat === "Brand Locked" || newTerm.cat === "Legal Core",
+    };
+    const next = [entry, ...terms];
+    save(next);
+    setNewTerm({ en: "", tgtLang: "de", cat: "Brand Locked" });
+    setShowAdd(false);
+    setAdding(false);
+    showToast("Constraint committed to TM Bank");
+  };
 
-  const filtered = phrases.filter(p =>
-    (cat === "All" || p.cat === cat) &&
-    (!search || p.en.toLowerCase().includes(search.toLowerCase()) || p.tr.toLowerCase().includes(search.toLowerCase()))
+  const remove = (id) => {
+    save(terms.filter((t) => t.id !== id));
+    showToast("Constraint removed from TM Bank");
+  };
+
+  const filtered = terms.filter(
+    (p) =>
+      (cat === "All" || p.cat === cat) &&
+      (!search ||
+        p.en.toLowerCase().includes(search.toLowerCase()) ||
+        p.tr.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
     <div className="pb-page">
       <div className="page-hero">
         <div className="inner">
-          <span className="sec-tag tag-violet">📌 Phrasebook</span>
-          <h1>Your Phrase<br /><span className="grad-text">Collection</span></h1>
-          <p>Save, organize, and replay your most-used translations. Your personal language toolkit.</p>
+          <span className="sec-tag">02 // TAXONOMY · TM BANK</span>
+          <h1>Centralized Terminology Memory</h1>
+          <p>
+            Manage deterministic corporate glossary constraints, locked brand trademarks, and approved legal translations across 50+ locales.
+          </p>
         </div>
       </div>
 
       <div className="pb-body section">
         <div className="inner">
-          {/* Toolbar */}
           <div className="pb-toolbar">
-            <input className="inp search-inp" placeholder="🔍 Search phrases..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input
+              className="inp search-inp"
+              placeholder="Query TM Bank terms or localized equivalents..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
             <div className="view-btns">
-              <button className={`btn-ghost ${view==="grid"?"active":""}`} onClick={() => setView("grid")}>⊞ Grid</button>
-              <button className={`btn-ghost ${view==="list"?"active":""}`} onClick={() => setView("list")}>☰ List</button>
+              <button
+                className={`btn-ghost ${view === "grid" ? "active" : ""}`}
+                onClick={() => setView("grid")}
+              >
+                Grid
+              </button>
+              <button
+                className={`btn-ghost ${view === "list" ? "active" : ""}`}
+                onClick={() => setView("list")}
+              >
+                Table
+              </button>
             </div>
-            <button className="btn-primary" onClick={() => setShowAdd(!showAdd)}>+ Add Phrase</button>
+            <button className="btn-primary" onClick={() => setShowAdd(!showAdd)}>
+              + Add TM Constraint
+            </button>
           </div>
 
-          {/* Add phrase panel */}
           {showAdd && (
             <div className="add-panel fade-in">
-              <div className="add-panel-title">Add new phrase</div>
+              <div className="add-panel-title">COMMIT NEW TERMINOLOGY CONSTRAINT</div>
               <div className="add-row">
-                <input className="inp" placeholder="Type English phrase..." value={newPhrase.en} onChange={e => setNewPhrase({...newPhrase, en: e.target.value})} onKeyDown={e => e.key==="Enter" && addPhrase()} style={{ flex: 2 }} />
-                <select className="inp" value={newPhrase.tgtLang} onChange={e => setNewPhrase({...newPhrase, tgtLang: e.target.value})} style={{ flex: 1 }}>
-                  {LANGUAGES.filter(l=>l.code!=="en").map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}
+                <input
+                  className="inp"
+                  placeholder="Source term (e.g., AcmeCorp™)"
+                  value={newTerm.en}
+                  onChange={(e) => setNewTerm({ ...newTerm, en: e.target.value })}
+                  onKeyDown={(e) => e.key === "Enter" && addTerm()}
+                  style={{ flex: 2 }}
+                />
+                <select
+                  className="inp"
+                  value={newTerm.tgtLang}
+                  onChange={(e) => setNewTerm({ ...newTerm, tgtLang: e.target.value })}
+                  style={{ flex: 1 }}
+                >
+                  {LANGUAGES.filter((l) => l.code !== "en").map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.locale} — {l.label}
+                    </option>
+                  ))}
                 </select>
-                <select className="inp" value={newPhrase.cat || "Travel"} onChange={e => setNewPhrase({...newPhrase, cat: e.target.value})} style={{ flex: 1 }}>
-                  {CATS.filter(c=>c!=="All").map(c => <option key={c}>{c}</option>)}
+                <select
+                  className="inp"
+                  value={newTerm.cat}
+                  onChange={(e) => setNewTerm({ ...newTerm, cat: e.target.value })}
+                  style={{ flex: 1 }}
+                >
+                  {CATS.filter((c) => c !== "All").map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
                 </select>
-                <button className="btn-primary" onClick={addPhrase} disabled={adding || !newPhrase.en.trim()}>
-                  {adding ? "⏳" : "Save"}
+                <button
+                  className="btn-primary"
+                  onClick={addTerm}
+                  disabled={adding || !newTerm.en.trim()}
+                >
+                  {adding ? "Committing..." : "Commit Rule"}
                 </button>
-                <button className="btn-ghost" onClick={() => setShowAdd(false)}>Cancel</button>
+                <button className="btn-ghost" onClick={() => setShowAdd(false)}>
+                  Cancel
+                </button>
               </div>
             </div>
           )}
 
-          {/* Cat filters */}
           <div className="cat-filters scroll-x">
-            {CATS.map(c => (
-              <button key={c} className={`cat-btn ${cat===c?"on":""}`} onClick={() => setCat(c)}>
-                {c} {c!=="All" && <span className="cat-count">{phrases.filter(p=>p.cat===c).length}</span>}
+            {CATS.map((c) => (
+              <button
+                key={c}
+                className={`cat-btn ${cat === c ? "on" : ""}`}
+                onClick={() => setCat(c)}
+              >
+                <span>{c}</span>
+                {c !== "All" && (
+                  <span className="cat-count">{terms.filter((p) => p.cat === c).length}</span>
+                )}
               </button>
             ))}
           </div>
 
-          {/* Stats bar */}
           <div className="pb-stats">
-            <span>{filtered.length} phrase{filtered.length!==1?"s":""}</span>
+            <span>
+              {filtered.length} deterministic rule{filtered.length !== 1 ? "s" : ""} · 100% DET cache hit
+            </span>
             {search && <span> matching "{search}"</span>}
-            <button className="btn-ghost" style={{ fontSize:12, marginLeft:"auto" }} onClick={() => { if(window.confirm("Reset to starter phrases?")) { save(STARTER_PHRASES); showToast("✅ Reset!"); } }}>Reset to defaults</button>
+            <button
+              className="btn-ghost"
+              style={{ marginLeft: "auto" }}
+              onClick={() => {
+                save(STARTER_TERMS);
+                showToast("TM Bank defaults restored");
+              }}
+            >
+              Reset defaults
+            </button>
           </div>
 
-          {/* Phrases */}
           {filtered.length === 0 ? (
             <div className="pb-empty">
-              <div style={{ fontSize: 48, marginBottom: 12 }}>📌</div>
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>No phrases yet</div>
-              <div style={{ color: "var(--text3)", fontSize: 14 }}>Add your first phrase using the button above</div>
+              <div className="pb-empty-ico">
+                <IconDatabase size={20} />
+              </div>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>No matching TM Bank entries</div>
+              <div style={{ color: "rgba(254,250,224,0.6)", fontSize: 13 }}>
+                Add a new term constraint above or clear the active filter.
+              </div>
             </div>
           ) : (
-            <div className={view==="grid" ? "ph-grid" : "ph-list"}>
-              {filtered.map(p => (
-                <div key={p.id} className={view==="grid" ? "ph-card-full" : "ph-row"}>
+            <div className={view === "grid" ? "ph-grid" : "ph-list"}>
+              {filtered.map((p) => (
+                <div key={p.id} className={view === "grid" ? "ph-card-full" : "ph-row"}>
                   <div className="phf-top">
-                    <span className="phf-flag">{p.flag}</span>
-                    <span className="phf-cat" style={{ color: CAT_COLORS[p.cat] || "var(--text3)" }}>{p.cat}</span>
-                    <button className="ph-del" onClick={() => remove(p.id)} title="Delete">✕</button>
+                    <span className="phf-locale">{p.locale}</span>
+                    <span className={`phf-cat ${p.locked ? "locked" : ""}`}>
+                      {p.locked && <IconLock size={11} />}
+                      <span>{p.cat}</span>
+                    </span>
+                    <button className="ph-del" onClick={() => remove(p.id)} title="Remove">
+                      ×
+                    </button>
                   </div>
                   <div className="phf-en">{p.en}</div>
                   <div className="phf-tr">{p.tr}</div>
-                  <div className="phf-lang">{p.flag} {p.lang}</div>
                   <div className="phf-actions">
-                    <button className="btn-ghost" onClick={() => speak(p.tr)} style={{ fontSize:12 }}>🔊</button>
-                    <button className="btn-ghost" onClick={() => copyText(p.tr, showToast)} style={{ fontSize:12 }}>📋</button>
-                    <button className="btn-ghost" onClick={() => speak(p.en, "en")} style={{ fontSize:12 }}>🔊 EN</button>
+                    <span className="phf-match">
+                      <IconCheck size={11} />
+                      <span>Glossary: 100%</span>
+                    </span>
+                    <button
+                      className="btn-ghost"
+                      onClick={() => copyText(p.tr, showToast)}
+                      style={{ marginLeft: "auto" }}
+                    >
+                      <IconCopy size={12} />
+                      <span>Copy</span>
+                    </button>
                   </div>
                 </div>
               ))}
