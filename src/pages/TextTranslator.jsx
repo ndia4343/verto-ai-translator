@@ -8,12 +8,12 @@ const MAX_CHARS = 5000;
 
 export default function TextTranslator({ showToast }) {
   const { translate, loading, error } = useTranslate();
-  const [src, setSrc] = useState("en");
-  const [tgt, setTgt] = useState("de");
-  const [input, setInput] = useState(
+  const [sourceLang, setSourceLang] = useState("en");
+  const [targetLang, setTargetLang] = useState("de");
+  const [sourceText, setSourceText] = useState(
     "3.4 Indemnification and Limitation of Liability. AcmeCorp™ shall defend, indemnify, and hold harmless Enterprise Client from third-party IP claims."
   );
-  const [output, setOutput] = useState(
+  const [targetText, setTargetText] = useState(
     "3.4 Freistellung und Haftungsbeschränkung. AcmeCorp™ stellt den Unternehmenskunden von Ansprüchen Dritter aus Schutzrechtsverletzungen frei."
   );
   const [tone, setTone] = useState("Legal Binding");
@@ -22,61 +22,63 @@ export default function TextTranslator({ showToast }) {
   const [charCount, setCharCount] = useState(141);
   const debounceRef = useRef(null);
 
-  const runTranslation = async (textToTranslate, sourceCode, targetCode, activeTone) => {
+  const runTranslation = async (textToTranslate, srcCode, tgtCode, activeTone) => {
     if (!textToTranslate.trim()) {
-      setOutput("");
+      setTargetText("");
       return;
     }
     const r = await translate({
       text: textToTranslate,
-      sourceLang: sourceCode,
-      targetLang: targetCode,
+      source_lang: srcCode,
+      target_lang: tgtCode,
+      sourceLang: srcCode,
+      targetLang: tgtCode,
     });
     if (typeof r === "string") {
-      setOutput(r);
+      setTargetText(r);
       setHistory((prev) => [
-        { src: sourceCode, tgt: targetCode, input: textToTranslate, output: r, tone: activeTone, ts: Date.now() },
+        { src: srcCode, tgt: tgtCode, input: textToTranslate, output: r, tone: activeTone, ts: Date.now() },
         ...prev.slice(0, 19),
       ]);
     }
   };
 
   useEffect(() => {
-    if (!input.trim()) {
-      setOutput("");
+    if (!sourceText.trim()) {
+      setTargetText("");
       return;
     }
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      runTranslation(input, src, tgt, tone);
+      runTranslation(sourceText, sourceLang, targetLang, tone);
     }, 500);
     return () => clearTimeout(debounceRef.current);
-  }, [input, src, tgt, tone, translate]);
+  }, [sourceText, sourceLang, targetLang, tone, translate]);
 
   const swap = () => {
-    const nextInput = output.slice(0, MAX_CHARS);
-    setInput(nextInput);
-    setOutput(input);
+    const nextInput = targetText.slice(0, MAX_CHARS);
+    setSourceText(nextInput);
+    setTargetText(sourceText);
     setCharCount(nextInput.length);
-    const t = src;
-    setSrc(tgt);
-    setTgt(t);
+    const t = sourceLang;
+    setSourceLang(targetLang);
+    setTargetLang(t);
   };
 
   const clear = () => {
-    setInput("");
-    setOutput("");
+    setSourceText("");
+    setTargetText("");
     setCharCount(0);
   };
 
   const handleInput = (e) => {
     const v = e.target.value.slice(0, MAX_CHARS);
-    setInput(v);
+    setSourceText(v);
     setCharCount(v.length);
   };
 
-  const srcLang = LANGUAGES.find((l) => l.code === src);
-  const tgtLang = LANGUAGES.find((l) => l.code === tgt);
+  const srcLangObj = LANGUAGES.find((l) => l.code === sourceLang);
+  const tgtLangObj = LANGUAGES.find((l) => l.code === targetLang);
 
   return (
     <div className="tt-page">
@@ -104,13 +106,13 @@ export default function TextTranslator({ showToast }) {
             </span>
             <span className="tt-rule-pill locale">
               <IconGlobe size={12} />
-              <span>Locale: {tgtLang?.locale || "de-DE"}</span>
+              <span>Locale: {tgtLangObj?.locale || "de-DE"}</span>
             </span>
           </div>
 
           <div className="tt-lang-row">
             <div className="lang-pill">
-              <select value={src} onChange={(e) => setSrc(e.target.value)}>
+              <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
                 {LANGUAGES.map((l) => (
                   <option key={l.code} value={l.code}>
                     {l.locale} — {l.label}
@@ -122,8 +124,8 @@ export default function TextTranslator({ showToast }) {
               <IconSwap size={14} />
             </button>
             <div className="lang-pill">
-              <select value={tgt} onChange={(e) => setTgt(e.target.value)}>
-                {LANGUAGES.filter((l) => l.code !== src).map((l) => (
+              <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
+                {LANGUAGES.filter((l) => l.code !== sourceLang).map((l) => (
                   <option key={l.code} value={l.code}>
                     {l.locale} — {l.label}
                   </option>
@@ -135,16 +137,16 @@ export default function TextTranslator({ showToast }) {
           <div className="tt-box">
             <div className="tt-side tt-in-side">
               <div className="tt-side-header">
-                <span>SOURCE [{srcLang?.locale}]</span>
+                <span>SOURCE [{srcLangObj?.locale}]</span>
                 <button className="btn-ghost" onClick={clear}>
                   Clear
                 </button>
               </div>
               <textarea
                 className="tt-textarea"
-                value={input}
+                value={sourceText}
                 onChange={handleInput}
-                placeholder="Enter source segment..."
+                placeholder="Enter or paste enterprise source string to analyze..."
                 autoFocus
               />
               <div className="tt-side-footer">
@@ -152,7 +154,7 @@ export default function TextTranslator({ showToast }) {
                   {charCount.toLocaleString()} / {MAX_CHARS.toLocaleString()} chars
                 </span>
                 <div style={{ display: "flex", gap: 6 }}>
-                  <button className="btn-ghost" onClick={() => speak(input, src)} title="Listen to source">
+                  <button className="btn-ghost" onClick={() => speak(sourceText, sourceLang)} title="Listen to source">
                     <IconVolume size={13} />
                   </button>
                   <button
@@ -160,7 +162,7 @@ export default function TextTranslator({ showToast }) {
                     onClick={() =>
                       navigator.clipboard?.readText().then((t) => {
                         const next = t.slice(0, MAX_CHARS);
-                        setInput(next);
+                        setSourceText(next);
                         setCharCount(next.length);
                       })
                     }
@@ -181,7 +183,7 @@ export default function TextTranslator({ showToast }) {
 
             <div className="tt-side tt-out-side">
               <div className="tt-side-header">
-                <span className="tt-out-title">LOCALIZED [{tgtLang?.locale}]</span>
+                <span className="tt-out-title">LOCALIZED [{tgtLangObj?.locale}]</span>
                 {loading ? (
                   <span className="tt-status-badge loading">Compiling...</span>
                 ) : error ? (
@@ -200,13 +202,16 @@ export default function TextTranslator({ showToast }) {
                     <button
                       type="button"
                       className="btn-ghost"
-                      onClick={() => runTranslation(input, src, tgt, tone)}
+                      onClick={() => {
+                        clearTimeout(debounceRef.current);
+                        runTranslation(sourceText, sourceLang, targetLang, tone);
+                      }}
                     >
                       Retry
                     </button>
                   </div>
                 )}
-                {output || (
+                {targetText || (
                   <span className="tt-placeholder">
                     {loading
                       ? "Compiling localized segment via Verto Engine..."
@@ -226,25 +231,39 @@ export default function TextTranslator({ showToast }) {
                     </button>
                   ))}
                 </div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <button className="btn-ghost" onClick={() => speak(output, tgt)} disabled={!output}>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  <button className="btn-ghost" onClick={() => speak(targetText, targetLang)} disabled={!targetText}>
                     <IconVolume size={13} />
                   </button>
                   <button
                     className="btn-ghost"
-                    onClick={() => copyText(output, showToast)}
-                    disabled={!output}
+                    onClick={() => copyText(targetText, showToast)}
+                    disabled={!targetText}
                   >
                     <IconCopy size={13} />
                     <span>Copy</span>
                   </button>
                   <button
-                    className="btn-primary"
+                    type="button"
+                    className="btn-outline"
                     style={{ padding: "6px 12px", fontSize: 12 }}
                     onClick={() => showToast("Segment approved and committed to TM Bank")}
-                    disabled={!output}
+                    disabled={!targetText}
                   >
                     Approve Segment
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ padding: "6px 12px", fontSize: 12 }}
+                    onClick={() => {
+                      clearTimeout(debounceRef.current);
+                      runTranslation(sourceText, sourceLang, targetLang, tone);
+                    }}
+                    disabled={loading || !sourceText.trim()}
+                  >
+                    <IconBolt size={12} />
+                    <span>{loading ? "Translating..." : "Translate"}</span>
                   </button>
                 </div>
               </div>
@@ -258,8 +277,8 @@ export default function TextTranslator({ showToast }) {
               return (
                 <button
                   key={c}
-                  className={`ql-btn ${tgt === c ? "on" : ""}`}
-                  onClick={() => setTgt(c)}
+                  className={`ql-btn ${targetLang === c ? "on" : ""}`}
+                  onClick={() => setTargetLang(c)}
                 >
                   {l.locale}
                 </button>
@@ -282,11 +301,11 @@ export default function TextTranslator({ showToast }) {
                         key={i}
                         className="history-item"
                         onClick={() => {
-                          setInput(h.input);
-                          setOutput(h.output);
+                          setSourceText(h.input);
+                          setTargetText(h.output);
                           setCharCount(h.input.length);
-                          setSrc(h.src);
-                          setTgt(h.tgt);
+                          setSourceLang(h.src);
+                          setTargetLang(h.tgt);
                         }}
                       >
                         <div className="hi-langs">

@@ -195,6 +195,7 @@ export default function Home({ showToast }) {
   } = useTranslate();
 
   const [segIdx, setSegIdx] = useState(0);
+  const [sourceLang] = useState("en");
   const [locale, setLocale] = useState("de-DE");
   const [toneMode, setToneMode] = useState("legal");
   const [glossaryLocked, setGlossaryLocked] = useState(true);
@@ -229,14 +230,14 @@ export default function Home({ showToast }) {
       return;
     }
 
-    const tgtCode = targetLocale.split("-")[0];
+    const targetLang = targetLocale.split("-")[0];
     setOcrError(null);
     const result = await translate({
       text: sourceText,
-      source_lang: "en",
-      target_lang: tgtCode,
-      sourceLang: "en",
-      targetLang: tgtCode,
+      source_lang: sourceLang,
+      target_lang: targetLang,
+      sourceLang,
+      targetLang,
     });
 
     if (typeof result === "string") {
