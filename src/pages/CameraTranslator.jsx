@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useTranslate, LANGUAGES, copyText } from "../hooks/useTranslate";
+import { useTranslate, LANGUAGES, copyText, TRANSLATE_API_BASE_URL } from "../hooks/useTranslate";
 import { IconFrame, IconCopy, IconCheck } from "../components/Icons";
 import "./CameraTranslator.css";
 
@@ -42,7 +42,7 @@ const DEMO_ASSETS = [
 ];
 
 export default function CameraTranslator({ showToast }) {
-  const { translate } = useTranslate();
+  const { translate, loading } = useTranslate();
   const [tgtL, setTgtL] = useState("en");
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
@@ -84,7 +84,7 @@ export default function CameraTranslator({ showToast }) {
 
   useEffect(() => () => stopCamera(), []);
 
-  const captureAndTranslate = async () => {
+  const captureAndTranslate = () => {
     if (!videoRef.current || !canvasRef.current) return;
     const canvas = canvasRef.current;
     canvas.width = videoRef.current.videoWidth;
@@ -92,21 +92,26 @@ export default function CameraTranslator({ showToast }) {
     canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
     setScanning(true);
     const token = localStorage.getItem("verto_token");
-    const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
-    try {
-      canvas.toBlob(
-        async (blob) => {
+
+    canvas.toBlob(
+      async (blob) => {
+        if (!blob) {
+          setScanning(false);
+          showToast("Optical capture frame empty");
+          return;
+        }
+        try {
           const form = new FormData();
           form.append("image", blob, "capture.jpg");
           form.append("targetLang", tgtL);
-          const res = await fetch(`${API}/api/translate/image`, {
+          const res = await fetch(`${TRANSLATE_API_BASE_URL}/api/translate/image`, {
             method: "POST",
             headers: token ? { Authorization: `Bearer ${token}` } : {},
             body: form,
           });
-          const data = await res.json();
+          const data = await res.json().catch(() => ({}));
           setScanning(false);
-          if (data.translations?.length > 0) {
+          if (res.ok && data.translations?.length > 0) {
             const first = data.translations[0];
             setTranslation({
               id: "OCR-01",
@@ -116,22 +121,23 @@ export default function CameraTranslator({ showToast }) {
             });
             showToast(`Extracted ${data.translations.length} visual bounding region(s)`);
           } else {
-            showToast("No readable text regions detected");
+            showToast(data.message || "No readable text regions detected");
           }
-        },
-        "image/jpeg",
-        0.92
-      );
-    } catch {
-      setScanning(false);
-      showToast("Optical extraction endpoint unavailable");
-    }
+        } catch {
+          setScanning(false);
+          showToast("Optical extraction endpoint unavailable");
+        }
+      },
+      "image/jpeg",
+      0.92
+    );
   };
 
   const inspectAssetNode = async (node) => {
     setHighlighted(node.text);
     setTimeout(() => setHighlighted(null), 1400);
     const result = await translate({ text: node.text, sourceLang: "auto", targetLang: tgtL });
+    if (result === undefined) return;
     setTranslation({
       id: node.id,
       src: node.text,
@@ -259,10 +265,10 @@ export default function CameraTranslator({ showToast }) {
                       </span>
                       <span className="glossary-mini">
                         <IconCheck size={10} />
-                        <span>Glossary: 100%</span>
+                        <span>{loading ? "Compiling..." : "Glossary: 100%"}</span>
                       </span>
                     </div>
-                    <div className="crp-text">{translation.tgt}</div>
+                    <div className="crp-text">{loading ? "Compiling..." : translation.tgt}</div>
                   </div>
                   <div className="crp-actions">
                     <button className="btn-ghost" onClick={() => copyText(translation.tgt, showToast)}>

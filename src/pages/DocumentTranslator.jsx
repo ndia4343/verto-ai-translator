@@ -1,9 +1,8 @@
 import { useState, useRef } from "react";
-import { LANGUAGES } from "../hooks/useTranslate";
+import { LANGUAGES, TRANSLATE_API_BASE_URL as API } from "../hooks/useTranslate";
 import { IconFile, IconShield, IconLock, IconGlobe, IconReflow } from "../components/Icons";
 import "./DocumentTranslator.css";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 const ACCEPTED = ".pdf,.docx,.doc,.pptx,.xlsx,.txt,.rtf";
 const MAX_MB = 100;
 
@@ -75,7 +74,7 @@ export default function DocumentTranslator({ showToast }) {
       setFiles((prev) =>
         prev.map((f) => (f.id === id ? { ...f, status: "error", progress: 0, error: e.message } : f))
       );
-      showToast("API gateway unreachable — verify VITE_API_URL");
+      showToast("API gateway unreachable — verify VITE_TRANSLATE_API_URL");
     }
   };
 

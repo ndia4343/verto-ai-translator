@@ -1,48 +1,137 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+export const TRANSLATE_API_BASE_URL = (
+  import.meta.env.VITE_TRANSLATE_API_URL ||
+  import.meta.env.VITE_API_URL ||
+  "https://aikahan-linguaflow-ai-translator-api.hf.space"
+).replace(/\/+$/, "");
+
+async function parseResponseBody(res) {
+  const raw = await res.text();
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { message: raw };
+  }
+}
 
 export function useTranslate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [provider, setProvider] = useState(null);
   const debounceRef = useRef(null);
+  const abortRef = useRef(null);
+  const requestIdRef = useRef(0);
 
-  const translate = async ({ text, sourceLang, targetLang }) => {
-    if (!text?.trim()) return "";
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
+    };
+  }, []);
+
+  const translate = useCallback(async ({ text, sourceLang, source_lang, targetLang, target_lang }) => {
+    if (!text?.trim()) {
+      setError(null);
+      setLoading(false);
+      return "";
+    }
+
+    const src = source_lang || sourceLang || "auto";
+    const tgt = target_lang || targetLang;
+    if (!tgt) {
+      setError("Target language is required");
+      return null;
+    }
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const reqId = ++requestIdRef.current;
+
     setLoading(true);
     setError(null);
+
     try {
       const token = localStorage.getItem("verto_token");
-      const res = await fetch(`${API}/api/translate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ text, sourceLang, targetLang }),
+      const headers = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      };
+
+      const body = JSON.stringify({
+        text,
+        source_lang: src,
+        target_lang: tgt,
+        sourceLang: src,
+        targetLang: tgt,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Translation failed");
-      return data.translation;
+
+      let res = await fetch(`${TRANSLATE_API_BASE_URL}/api/translate`, {
+        method: "POST",
+        headers,
+        body,
+        signal: controller.signal,
+      });
+
+      if (res.status === 404) {
+        res = await fetch(`${TRANSLATE_API_BASE_URL}/translate`, {
+          method: "POST",
+          headers,
+          body,
+          signal: controller.signal,
+        });
+      }
+
+      const data = await parseResponseBody(res);
+      if (!res.ok) {
+        throw new Error(data.message || data.error || data.detail || `Translation failed (HTTP ${res.status})`);
+      }
+
+      const translated =
+        data.translation ??
+        data.translated_text ??
+        data.translatedText ??
+        data.result ??
+        null;
+
+      if (typeof translated !== "string") {
+        throw new Error("Invalid translation response from API");
+      }
+
+      if (reqId === requestIdRef.current) {
+        setProvider(data.provider || null);
+      }
+
+      return translated;
     } catch (e) {
-      setError(e.message);
+      if (e?.name === "AbortError" || reqId !== requestIdRef.current) {
+        return undefined;
+      }
+      setError(e.message || "Translation service unavailable");
       return null;
     } finally {
-      setLoading(false);
+      if (reqId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
 
-  const translateDebounced = (params, delay = 400) => {
-    return new Promise((resolve) => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(async () => {
-        const result = await translate(params);
-        resolve(result);
-      }, delay);
-    });
-  };
+  const translateDebounced = useCallback(
+    (params, delay = 400) => {
+      return new Promise((resolve) => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(async () => {
+          const result = await translate(params);
+          resolve(result);
+        }, delay);
+      });
+    },
+    [translate]
+  );
 
-  return { translate, translateDebounced, loading, error };
+  return { translate, translateDebounced, loading, error, provider };
 }
 
 export const LANGUAGES = [

@@ -73,10 +73,12 @@ export default function VoicePage({ showToast }) {
       if (e.results[e.results.length - 1].isFinal && transcript.trim()) {
         setStatus("Compiling localized segment...");
         const r = await translate({ text: transcript, sourceLang: srcL, targetLang: tgtL });
-        if (r) {
+        if (typeof r === "string" && r) {
           setLines((prev) => [...prev, { src: transcript, tgt: r, srcL, tgtL }]);
           speak(r, tgtL);
           setStatus("Segment logged to transcript");
+        } else if (r === null) {
+          setStatus("Translation service unavailable");
         }
       }
     };

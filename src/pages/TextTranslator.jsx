@@ -7,7 +7,7 @@ const TONES = ["Legal Binding", "Neural Formal", "Technical Spec", "Executive Br
 const MAX_CHARS = 5000;
 
 export default function TextTranslator({ showToast }) {
-  const { translate, loading } = useTranslate();
+  const { translate, loading, error } = useTranslate();
   const [src, setSrc] = useState("en");
   const [tgt, setTgt] = useState("de");
   const [input, setInput] = useState(
@@ -22,25 +22,42 @@ export default function TextTranslator({ showToast }) {
   const [charCount, setCharCount] = useState(141);
   const debounceRef = useRef(null);
 
+  const runTranslation = async (textToTranslate, sourceCode, targetCode, activeTone) => {
+    if (!textToTranslate.trim()) {
+      setOutput("");
+      return;
+    }
+    const r = await translate({
+      text: textToTranslate,
+      sourceLang: sourceCode,
+      targetLang: targetCode,
+    });
+    if (typeof r === "string") {
+      setOutput(r);
+      setHistory((prev) => [
+        { src: sourceCode, tgt: targetCode, input: textToTranslate, output: r, tone: activeTone, ts: Date.now() },
+        ...prev.slice(0, 19),
+      ]);
+    }
+  };
+
   useEffect(() => {
     if (!input.trim()) {
       setOutput("");
       return;
     }
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(async () => {
-      const r = await translate({ text: input, sourceLang: src, targetLang: tgt });
-      if (r) {
-        setOutput(r);
-        setHistory((prev) => [{ src, tgt, input, output: r, tone, ts: Date.now() }, ...prev.slice(0, 19)]);
-      }
+    debounceRef.current = setTimeout(() => {
+      runTranslation(input, src, tgt, tone);
     }, 500);
     return () => clearTimeout(debounceRef.current);
-  }, [input, src, tgt, tone]);
+  }, [input, src, tgt, tone, translate]);
 
   const swap = () => {
-    setInput(output);
+    const nextInput = output.slice(0, MAX_CHARS);
+    setInput(nextInput);
     setOutput(input);
+    setCharCount(nextInput.length);
     const t = src;
     setSrc(tgt);
     setTgt(t);
@@ -140,7 +157,13 @@ export default function TextTranslator({ showToast }) {
                   </button>
                   <button
                     className="btn-ghost"
-                    onClick={() => navigator.clipboard?.readText().then((t) => setInput(t))}
+                    onClick={() =>
+                      navigator.clipboard?.readText().then((t) => {
+                        const next = t.slice(0, MAX_CHARS);
+                        setInput(next);
+                        setCharCount(next.length);
+                      })
+                    }
                   >
                     Paste
                   </button>
@@ -159,13 +182,37 @@ export default function TextTranslator({ showToast }) {
             <div className="tt-side tt-out-side">
               <div className="tt-side-header">
                 <span className="tt-out-title">LOCALIZED [{tgtLang?.locale}]</span>
-                <span className="tt-match-badge">
-                  <IconCheck size={11} />
-                  <span>Glossary: 100%</span>
-                </span>
+                {loading ? (
+                  <span className="tt-status-badge loading">Compiling...</span>
+                ) : error ? (
+                  <span className="tt-status-badge error">API Fallback</span>
+                ) : (
+                  <span className="tt-match-badge">
+                    <IconCheck size={11} />
+                    <span>Glossary: 100%</span>
+                  </span>
+                )}
               </div>
               <div className={`tt-output ${loading ? "translating" : ""}`}>
-                {output || <span className="tt-placeholder">Compiled localized output appears here...</span>}
+                {error && (
+                  <div className="tt-error-bar">
+                    <span>Engine unreachable ({error}). Showing cached fallback.</span>
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      onClick={() => runTranslation(input, src, tgt, tone)}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+                {output || (
+                  <span className="tt-placeholder">
+                    {loading
+                      ? "Compiling localized segment via Verto Engine..."
+                      : "Compiled localized output appears here..."}
+                  </span>
+                )}
               </div>
               <div className="tt-side-footer">
                 <div className="tone-group">
@@ -237,6 +284,7 @@ export default function TextTranslator({ showToast }) {
                         onClick={() => {
                           setInput(h.input);
                           setOutput(h.output);
+                          setCharCount(h.input.length);
                           setSrc(h.src);
                           setTgt(h.tgt);
                         }}

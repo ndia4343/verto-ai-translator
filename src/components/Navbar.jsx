@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import Logo from "./Logo";
 import { IconBolt, IconUser, IconFile, IconFrame, IconMatrix } from "./Icons";
+import { TRANSLATE_API_BASE_URL as API } from "../hooks/useTranslate";
 import "./Navbar.css";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 export default function Navbar({ page, setPage, user, setUser, showToast, onJumpTelemetry }) {
   const [loginOpen, setLoginOpen] = useState(false);
@@ -74,7 +73,7 @@ export default function Navbar({ page, setPage, user, setUser, showToast, onJump
         showToast(data.message || "Authentication failed");
       }
     } catch {
-      showToast("API gateway offline — check VITE_API_URL");
+      showToast("API gateway offline — check VITE_TRANSLATE_API_URL");
     }
     setLoading(false);
   };
