@@ -4,8 +4,8 @@
 
 ---
 <div align="center">
-  <img src="screen.png" alt="Verto Enterprise Localization Matrix" width="100%" style="border-radius: 8px; border: 1px solid #1a221d;" />
-</div> 
+  <img src="screen.png" alt="Verto Localization Platform" width="600" style="border-radius: 8px; border: 1px solid #1a221d;" />
+</div>
 
 ## Core Capabilities
 
