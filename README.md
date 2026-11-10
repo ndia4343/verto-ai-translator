@@ -1,56 +1,39 @@
-# Verto — Enterprise Localization Platform
+# Verto — Enterprise Localization Infrastructure
 
-**Verto** is an enterprise-grade Localization & Translation Ops platform engineered for deterministic terminology enforcement, PDF AST DOM layout preservation, and zero-collision multi-locale workflows.
+**Verto** is a high-precision localization and translation operations platform engineered for deterministic terminology enforcement, document vector reflow, and zero-collision multi-locale workflows.
 
 ---
 
-## Core Architecture
+## Core Capabilities
 
-- **Precision Matrix (`REAL-TIME DIFF`)** — Live AST diff review with locked corporate glossary tokens (`AcmeCorp™`), bounding-box verification (`0px` overflow drift), and regulatory tone selection.
-- **01 // DOM Reflow** — Pixel-preserved formatting across tables, invoices, and multi-column PDFs.
-- **02 // Taxonomy (TM Bank)** — Centralized terminology memory preventing generative drift across 50+ locales.
-- **03 // Quality Gate** — Automated BLEU, COMET, and semantic fidelity scoring prior to legal sign-off.
-- **04 // Governance** — Role-based access control, SAML 2.0 / Okta integration, and AES-GCM cluster telemetry.
+- **Precision Matrix (`REAL-TIME DIFF`)** — Sub-segment AST diff review with locked terminology tokens, automated bounding-box containment verification (`0px` drift), and regulatory tone selection.
+- **01 // Vector Layout Reflow** — Pixel-preserved formatting across tables, complex invoices, and multi-column document structures.
+- **02 // Terminology Vault (TM Bank)** — Centralized, cryptographic glossary enforcement preventing generative drift across 50+ target locales.
+- **03 // Automated Quality Gate** — Segment-level BLEU, COMET, and semantic fidelity scoring executed prior to human sign-off.
+- **04 // Enterprise Governance** — Role-based access control (RBAC), SAML 2.0 / Okta directory sync, and zero-retention data boundaries.
 
 ---
 
 ## Project Structure
 
-```
+```text
 src/
 ├── components/
-│   ├── Footer.jsx / Footer.css       # Trust badges & Verto footer
-│   ├── Icons.jsx                     # Crisp monochrome/chartreuse SVG icons & flags
-│   ├── Logo.jsx                      # Geometric interlocking 'V' SVG & wordmark
-│   ├── MobileNav.jsx / MobileNav.css # Sticky mobile bottom bar (Matrix, TM Bank, Pipelines, Telemetry)
-│   ├── Navbar.jsx / Navbar.css       # Top bar with Deploy CTA, menu, and SSO profile avatar
-│   └── Toast.jsx                     # Terminal-style toast feedback
+│   ├── Footer.jsx / Footer.css       # Compliance badges, legal metadata & system status
+│   ├── Icons.jsx                     # Monochrome & chartreuse technical status glyphs
+│   ├── Logo.jsx                      # Minimalist geometric 'V' mark & wordmark
+│   ├── MobileNav.jsx / MobileNav.css # Responsive viewport dock (Matrix, TM Bank, Pipelines, Telemetry)
+│   ├── Navbar.jsx / Navbar.css       # Top navigation, workspace switcher & deployment trigger
+│   └── Toast.jsx                     # Terminal-style telemetry notifications
 ├── hooks/
-│   └── useTranslate.js               # Translation API hook & locale catalog
+│   └── useTranslate.js               # Multi-engine routing layer & locale catalog
 ├── pages/
-│   ├── Home.jsx / Home.css           # Hero, Precision Matrix, Capabilities & Live Cluster Telemetry
-│   ├── Pricing.jsx / Pricing.css     # Team, Growth, and Enterprise licensing
-│   ├── TextTranslator.jsx            # Segment Diff Workbench
-│   ├── DocumentTranslator.jsx        # AST Document Pipeline
-│   ├── CameraTranslator.jsx          # Live OCR & Surface Extraction
-│   ├── VoicePage.jsx                 # Briefing & Audio Localization
-│   └── PhrasebookPage.jsx            # TM Bank & Terminology Constraints
+│   ├── Home.jsx / Home.css           # Workbench preview, core telemetry & architecture overview
+│   ├── Pricing.jsx / Pricing.css     # Tiered licensing (Team, Growth, Enterprise SLA)
+│   ├── SegmentWorkbench.jsx          # Live segment diff & approval interface
+│   ├── DocumentPipeline.jsx          # Batch document ingestion & vector reflow viewer
+│   ├── MediaLocalization.jsx         # Audio synthesis & video subtitle engine
+│   └── TerminologyVault.jsx          # Locked glossaries, regex masks & TM database
 ├── App.jsx
 ├── main.jsx
 └── index.css
-```
-
----
-
-## Local Development
-
-```bash
-npm install
-npm run dev
-```
-
-Build for production:
-
-```bash
-npm run build
-```
