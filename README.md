@@ -3,10 +3,13 @@
 **Verto** is a high-precision localization and translation operations platform engineered for deterministic terminology enforcement, document vector reflow, and zero-collision multi-locale workflows.
 
 ---
+<div align="center">
+  <img src="screen.png" alt="Verto Enterprise Localization Matrix" width="100%" style="border-radius: 8px; border: 1px solid #1a221d;" />
+</div> 
 
 ## Core Capabilities
 
-- **Precision Matrix (`REAL-TIME DIFF`)** — Sub-segment AST diff review with locked terminology tokens, automated bounding-box containment verification (`0px` drift), and regulatory tone selection.
+- **Precision Matrix (REAL-TIME DIFF)** — Sub-segment AST diff review with locked terminology tokens, automated bounding-box containment verification (`0px` drift), and regulatory tone selection.
 - **01 // Vector Layout Reflow** — Pixel-preserved formatting across tables, complex invoices, and multi-column document structures.
 - **02 // Terminology Vault (TM Bank)** — Centralized, cryptographic glossary enforcement preventing generative drift across 50+ target locales.
 - **03 // Automated Quality Gate** — Segment-level BLEU, COMET, and semantic fidelity scoring executed prior to human sign-off.
