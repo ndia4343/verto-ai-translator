@@ -6,14 +6,27 @@ export const TRANSLATE_API_BASE_URL = (
   "https://aikahan-linguaflow-ai-translator-api.hf.space"
 ).replace(/\/+$/, "");
 
+const REQUEST_TIMEOUT_MS = 25000;
+
 async function parseResponseBody(res) {
   const raw = await res.text();
   if (!raw) return {};
   try {
     return JSON.parse(raw);
   } catch {
-    return { message: raw };
+    return { message: raw, isHtml: /<html/i.test(raw) };
   }
+}
+
+function formatApiError(res, data) {
+  if (
+    [502, 503, 504].includes(res.status) ||
+    data.isHtml ||
+    /pause|sleep|start|build|wake/i.test(data.message || "")
+  ) {
+    return `Hugging Face Space appears paused or cold-starting (HTTP ${res.status}). Retry in a few seconds.`;
+  }
+  return data.message || data.error || data.detail || `Translation failed (HTTP ${res.status})`;
 }
 
 export function useTranslate() {
@@ -27,7 +40,7 @@ export function useTranslate() {
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      abortRef.current?.abort();
+      abortRef.current?.abort("unmount");
     };
   }, []);
 
@@ -38,17 +51,23 @@ export function useTranslate() {
       return "";
     }
 
-    const src = source_lang || sourceLang || "auto";
-    const tgt = target_lang || targetLang;
+    const src = (source_lang || sourceLang || "en").split("-")[0];
+    const tgt = (target_lang || targetLang || "").split("-")[0];
     if (!tgt) {
       setError("Target language is required");
       return null;
     }
 
-    abortRef.current?.abort();
+    abortRef.current?.abort("superseded");
     const controller = new AbortController();
     abortRef.current = controller;
     const reqId = ++requestIdRef.current;
+
+    let timedOut = false;
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      controller.abort("timeout");
+    }, REQUEST_TIMEOUT_MS);
 
     setLoading(true);
     setError(null);
@@ -86,7 +105,7 @@ export function useTranslate() {
 
       const data = await parseResponseBody(res);
       if (!res.ok) {
-        throw new Error(data.message || data.error || data.detail || `Translation failed (HTTP ${res.status})`);
+        throw new Error(formatApiError(res, data));
       }
 
       const translated =
@@ -106,12 +125,23 @@ export function useTranslate() {
 
       return translated;
     } catch (e) {
+      if (timedOut) {
+        if (reqId === requestIdRef.current) {
+          setError("Translation request timed out — Hugging Face Space may be paused or cold-starting. Retry shortly.");
+        }
+        return null;
+      }
       if (e?.name === "AbortError" || reqId !== requestIdRef.current) {
         return undefined;
       }
-      setError(e.message || "Translation service unavailable");
+      setError(
+        /failed to fetch|networkerror|load failed/i.test(e?.message || "")
+          ? "Unable to reach Hugging Face translation API — the Space may be paused, cold-starting, or offline."
+          : e.message || "Translation service unavailable"
+      );
       return null;
     } finally {
+      clearTimeout(timeoutId);
       if (reqId === requestIdRef.current) {
         setLoading(false);
       }
@@ -131,7 +161,9 @@ export function useTranslate() {
     [translate]
   );
 
-  return { translate, translateDebounced, loading, error, provider };
+  const clearError = useCallback(() => setError(null), []);
+
+  return { translate, translateDebounced, loading, error, provider, clearError };
 }
 
 export const LANGUAGES = [

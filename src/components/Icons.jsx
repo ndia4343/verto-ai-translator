@@ -71,6 +71,27 @@ export function IconFile({ size = 15 }) {
   );
 }
 
+export function IconUpload({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M8 10.5V2.75M5.25 5.5 8 2.75l2.75 2.75"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M2.75 10.25v2.25a1 1 0 0 0 1 1h8.5a1 1 0 0 0 1-1v-2.25"
+        stroke="currentColor"
+        strokeWidth="1.35"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function IconGlobe({ size = 15 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">

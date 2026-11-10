@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import Tesseract from "tesseract.js";
+import { useTranslate } from "../hooks/useTranslate";
 import {
   IconBolt,
   IconLock,
   IconCheck,
   IconCheckCircle,
   IconFile,
+  IconUpload,
   IconLanguages,
   IconClock,
   IconTarget,
@@ -182,7 +185,15 @@ const CAPABILITIES = [
 
 const LOCALE_CYCLE = ["de-DE", "fr-FR", "ja-JP"];
 
-export default function Home({ setPage, showToast }) {
+export default function Home({ showToast }) {
+  const {
+    translate,
+    loading: translating,
+    error: translateError,
+    provider,
+    clearError,
+  } = useTranslate();
+
   const [segIdx, setSegIdx] = useState(0);
   const [locale, setLocale] = useState("de-DE");
   const [toneMode, setToneMode] = useState("legal");
@@ -190,15 +201,91 @@ export default function Home({ setPage, showToast }) {
   const [approvedIds, setApprovedIds] = useState(new Set());
   const [regenerating, setRegenerating] = useState(false);
 
+  const [sourceText, setSourceText] = useState(
+    `${SEGMENTS[0].srcPrefix}${SEGMENTS[0].term}${SEGMENTS[0].srcSuffix}`
+  );
+  const [translatedText, setTranslatedText] = useState("");
+  const [targetMode, setTargetMode] = useState("sample");
+  const [activeDocName, setActiveDocName] = useState("2026_Q3_Enterprise_MSA.pdf");
+  const [ocrActive, setOcrActive] = useState(false);
+  const [ocrError, setOcrError] = useState(null);
+
+  const ocrInputRef = useRef(null);
+  const sourceTextareaRef = useRef(null);
+
   const segment = SEGMENTS[segIdx];
   const locData = segment.translations[locale] || segment.translations["de-DE"];
   const activeCopy = locData[toneMode] || locData.legal;
   const isApproved = approvedIds.has(`${segment.id}-${locale}`);
 
+  const scrollToMatrix = () => {
+    document.getElementById("precision-matrix")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const runAstMatrix = async (targetLocale = locale) => {
+    if (!sourceText.trim()) {
+      showToast("Enter, paste, or scan source text first");
+      sourceTextareaRef.current?.focus();
+      return;
+    }
+
+    const tgtCode = targetLocale.split("-")[0];
+    setOcrError(null);
+    const result = await translate({
+      text: sourceText,
+      source_lang: "en",
+      target_lang: tgtCode,
+      sourceLang: "en",
+      targetLang: tgtCode,
+    });
+
+    if (typeof result === "string") {
+      setTranslatedText(result);
+      setTargetMode("live");
+      showToast(`AST Matrix compiled to ${targetLocale}`);
+    } else if (result === null) {
+      setTargetMode("error");
+      showToast("Translation engine unreachable — fallback active");
+    }
+  };
+
+  const handleOcrScan = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setOcrActive(true);
+    setOcrError(null);
+    clearError();
+    try {
+      const { data } = await Tesseract.recognize(file, "eng");
+      const extracted = (data?.text || "").replace(/[ \t]+\n/g, "\n").trim();
+      if (!extracted) {
+        setOcrError("No readable text tokens detected in uploaded image.");
+        showToast("OCR completed — no readable text detected");
+      } else {
+        setSourceText(extracted);
+        setActiveDocName(file.name);
+        setTranslatedText("");
+        setTargetMode("pending");
+        showToast(`OCR extracted ${extracted.length} characters from ${file.name}`);
+      }
+    } catch {
+      setOcrError("In-browser OCR failed to decode image. Please select a valid PNG, JPG, or WEBP file.");
+      showToast("OCR scan failed");
+    } finally {
+      setOcrActive(false);
+    }
+  };
+
   const cycleLocale = () => {
     const next = LOCALE_CYCLE[(LOCALE_CYCLE.indexOf(locale) + 1) % LOCALE_CYCLE.length];
     setLocale(next);
-    showToast(`Target AST locale switched to ${next}`);
+    if (targetMode === "live") {
+      runAstMatrix(next);
+    } else {
+      showToast(`Target AST locale switched to ${next}`);
+    }
   };
 
   const handleApprove = () => {
@@ -219,14 +306,18 @@ export default function Home({ setPage, showToast }) {
   const handleRegenerate = () => {
     setRegenerating(true);
     setTimeout(() => {
-      setSegIdx((prev) => (prev + 1) % SEGMENTS.length);
+      const nextIdx = (segIdx + 1) % SEGMENTS.length;
+      const nextSeg = SEGMENTS[nextIdx];
+      setSegIdx(nextIdx);
+      setSourceText(`${nextSeg.srcPrefix}${nextSeg.term}${nextSeg.srcSuffix}`);
+      setActiveDocName("2026_Q3_Enterprise_MSA.pdf");
+      setTranslatedText("");
+      setTargetMode("sample");
+      setOcrError(null);
+      clearError();
       setRegenerating(false);
       showToast("AST segment diff refreshed");
     }, 260);
-  };
-
-  const scrollToMatrix = () => {
-    document.getElementById("precision-matrix")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -250,11 +341,25 @@ export default function Home({ setPage, showToast }) {
             </p>
 
             <div className="hero-btns">
-              <button className="btn-primary hero-cta-primary" onClick={() => setPage("pricing")}>
+              <button
+                type="button"
+                className="btn-primary hero-cta-primary"
+                onClick={() => {
+                  scrollToMatrix();
+                  runAstMatrix(locale);
+                }}
+              >
                 <span>Start Enterprise Trial</span>
                 <IconArrowRight size={15} />
               </button>
-              <button className="btn-outline hero-cta-secondary" onClick={scrollToMatrix}>
+              <button
+                type="button"
+                className="btn-outline hero-cta-secondary"
+                onClick={() => {
+                  scrollToMatrix();
+                  sourceTextareaRef.current?.focus();
+                }}
+              >
                 <IconFile size={15} />
                 <span>View Live Sample</span>
               </button>
@@ -298,7 +403,7 @@ export default function Home({ setPage, showToast }) {
                     <span className="mc-pdf-ico">
                       <IconFile size={15} />
                     </span>
-                    <span>2026_Q3_Enterprise_MSA.pdf</span>
+                    <span className="mc-doc-name">{activeDocName}</span>
                   </div>
                   <div className="mc-engine-sub">
                     <span className="mc-live-dot" />
@@ -306,15 +411,34 @@ export default function Home({ setPage, showToast }) {
                   </div>
                 </div>
                 <div className="mc-file-right">
-                  <button
-                    type="button"
-                    className="locale-badge-btn"
-                    onClick={cycleLocale}
-                    title="Click to switch target locale"
-                  >
-                    <LocaleFlag locale={locale} />
-                    <span>{locale}</span>
-                  </button>
+                  <div className="mc-header-actions">
+                    <input
+                      ref={ocrInputRef}
+                      type="file"
+                      accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+                      onChange={handleOcrScan}
+                      style={{ display: "none" }}
+                    />
+                    <button
+                      type="button"
+                      className="scan-doc-btn"
+                      onClick={() => ocrInputRef.current?.click()}
+                      disabled={ocrActive}
+                      title="Scan image (.png, .jpg, .webp) using in-browser OCR"
+                    >
+                      <IconUpload size={13} />
+                      <span>{ocrActive ? "Scanning..." : "Scan Document / Image"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="locale-badge-btn"
+                      onClick={cycleLocale}
+                      title="Click to switch target locale"
+                    >
+                      <LocaleFlag locale={locale} />
+                      <span>{locale}</span>
+                    </button>
+                  </div>
                   <div className="mc-version">v4.2.1-prod</div>
                 </div>
               </div>
@@ -325,49 +449,134 @@ export default function Home({ setPage, showToast }) {
                   <span className="seg-id-chip">{segment.id}</span>
                   <span className="seg-label">{segment.meta}</span>
                 </div>
-                <span className="det-badge">
-                  <IconBolt size={11} />
-                  <span>Deterministic</span>
-                </span>
+                {ocrActive ? (
+                  <span className="ocr-active-badge" role="status" aria-live="polite">
+                    [OCR Active: Extracting tokens...]
+                  </span>
+                ) : (
+                  <span className="det-badge">
+                    <IconBolt size={11} />
+                    <span>Deterministic</span>
+                  </span>
+                )}
               </div>
+
+              {ocrError && (
+                <div className="ocr-error-banner" role="alert">
+                  {ocrError}
+                </div>
+              )}
 
               {/* Source Block [en-US] */}
               <div className="diff-block src-block">
                 <div className="diff-block-hdr">
-                  <span>SOURCE [en-US]</span>
-                  <button
-                    type="button"
-                    className={`lock-icon-btn ${glossaryLocked ? "locked" : ""}`}
-                    onClick={() => {
-                      setGlossaryLocked(!glossaryLocked);
-                      showToast(`Glossary constraint ${!glossaryLocked ? "locked" : "unlocked"}`);
-                    }}
-                    title="Toggle glossary lock"
-                  >
-                    <IconLock size={13} />
-                  </button>
+                  <span>SOURCE [en-US] · EDITABLE BUFFER</span>
+                  <div className="src-hdr-tools">
+                    <button
+                      type="button"
+                      className="clear-src-btn"
+                      onClick={() => {
+                        setSourceText("");
+                        setTranslatedText("");
+                        setTargetMode("pending");
+                        clearError();
+                        sourceTextareaRef.current?.focus();
+                      }}
+                    >
+                      Clear
+                    </button>
+                    <button
+                      type="button"
+                      className={`lock-icon-btn ${glossaryLocked ? "locked" : ""}`}
+                      onClick={() => {
+                        setGlossaryLocked(!glossaryLocked);
+                        showToast(`Glossary constraint ${!glossaryLocked ? "locked" : "unlocked"}`);
+                      }}
+                      title="Toggle glossary lock"
+                    >
+                      <IconLock size={13} />
+                    </button>
+                  </div>
                 </div>
-                <p className="diff-text">
-                  {segment.srcPrefix}
-                  <span className="term-src-token">{segment.term}</span>
-                  {segment.srcSuffix}
-                </p>
+                <textarea
+                  ref={sourceTextareaRef}
+                  className="diff-textarea"
+                  value={sourceText}
+                  onChange={(e) => {
+                    setSourceText(e.target.value);
+                    setOcrError(null);
+                    clearError();
+                    if (targetMode !== "pending") {
+                      setTargetMode("pending");
+                    }
+                  }}
+                  placeholder="Enter or paste enterprise source string to analyze..."
+                  rows={4}
+                  spellCheck={false}
+                  aria-label="Editable enterprise source text"
+                />
               </div>
 
-              {/* Localized Block */}
-              <div className={`diff-block tgt-block ${regenerating ? "refreshing" : ""}`}>
+              {/* Localized TARGET Block */}
+              <div className={`diff-block tgt-block ${regenerating || translating ? "refreshing" : ""}`}>
                 <div className="diff-block-hdr tgt-hdr">
                   <span className="tgt-label-left">
                     <span className="tgt-dot" />
-                    <span>LOCALIZED [{locale}] · NEURAL FORMAL</span>
+                    <span>
+                      TARGET [{locale}] ·{" "}
+                      {translating
+                        ? "COMPILING AST"
+                        : targetMode === "live"
+                        ? `LIVE HF API${provider ? ` (${provider.toUpperCase()})` : ""}`
+                        : "NEURAL FORMAL"}
+                    </span>
                   </span>
-                  <span className="confidence-val">{locData.confidence} Confidence</span>
+                  <span className={`confidence-val ${targetMode === "error" ? "warn" : ""}`}>
+                    {translating
+                      ? "Translating..."
+                      : targetMode === "error"
+                      ? "Fallback Alert"
+                      : targetMode === "live"
+                      ? "Live Verified"
+                      : targetMode === "pending"
+                      ? "Ready"
+                      : `${locData.confidence} Confidence`}
+                  </span>
                 </div>
-                <p className="diff-text">
-                  {activeCopy.prefix}
-                  <span className="term-tgt-token">{segment.term}</span>
-                  {activeCopy.suffix}
-                </p>
+
+                {translateError && (
+                  <div className="matrix-fallback-err" role="alert">
+                    <span>{translateError}</span>
+                    <button
+                      type="button"
+                      className="retry-inline-btn"
+                      onClick={() => runAstMatrix(locale)}
+                      disabled={translating}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+
+                {translating ? (
+                  <p className="diff-text diff-muted">
+                    Compiling localized AST segment via Hugging Face translation engine...
+                  </p>
+                ) : targetMode === "live" && translatedText ? (
+                  <p className="diff-text">{translatedText}</p>
+                ) : targetMode === "sample" ? (
+                  <p className="diff-text">
+                    {activeCopy.prefix}
+                    <span className="term-tgt-token">{segment.term}</span>
+                    {activeCopy.suffix}
+                  </p>
+                ) : translatedText ? (
+                  <p className="diff-text">{translatedText}</p>
+                ) : (
+                  <p className="diff-text diff-muted">
+                    Click &ldquo;Run AST Matrix&rdquo; or &ldquo;Start Enterprise Trial&rdquo; to translate source buffer into {locale}.
+                  </p>
+                )}
               </div>
 
               {/* Metric Badges */}
@@ -413,18 +622,27 @@ export default function Home({ setPage, showToast }) {
               <div className="mc-action-row">
                 <button
                   type="button"
+                  className="run-ast-btn"
+                  onClick={() => runAstMatrix(locale)}
+                  disabled={translating || ocrActive}
+                >
+                  <IconBolt size={15} />
+                  <span>{translating ? "Compiling..." : "Run AST Matrix"}</span>
+                </button>
+                <button
+                  type="button"
                   className={`approve-seg-btn ${isApproved ? "approved" : ""}`}
                   onClick={handleApprove}
                 >
                   <IconCheckCircle size={15} />
-                  <span>{isApproved ? "Segment Approved (Committed)" : "Approve Segment"}</span>
+                  <span>{isApproved ? "Approved" : "Approve Segment"}</span>
                 </button>
                 <button
                   type="button"
                   className="regen-btn"
                   onClick={handleRegenerate}
-                  title="Cycle / regenerate segment"
-                  aria-label="Regenerate segment"
+                  title="Cycle sample contract segment"
+                  aria-label="Cycle sample segment"
                 >
                   <IconRefresh size={15} />
                 </button>
