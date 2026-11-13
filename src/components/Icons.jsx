@@ -276,74 +276,86 @@ export function IconBook({ size = 15 }) {
   );
 }
 
-export function LocaleFlag({ locale = "de-DE" }) {
-  if (locale === "fr-FR") {
-    return (
-      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
-        <rect width="5.33" height="11" fill="#1D4ED8" />
-        <rect x="5.33" width="5.34" height="11" fill="#F8FAFC" />
-        <rect x="10.67" width="5.33" height="11" fill="#DC2626" />
-      </svg>
-    );
-  }
-  if (locale === "ja-JP") {
-    return (
-      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
-        <rect width="16" height="11" fill="#F8FAFC" />
-        <circle cx="8" cy="5.5" r="3" fill="#DC2626" />
-      </svg>
-    );
-  }
-  if (locale === "en-US") {
-    return (
-      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
-        <rect width="16" height="11" fill="#DC2626" />
-        <rect y="1.5" width="16" height="1.6" fill="#F8FAFC" />
-        <rect y="4.7" width="16" height="1.6" fill="#F8FAFC" />
-        <rect y="7.9" width="16" height="1.6" fill="#F8FAFC" />
-        <rect width="7" height="6" fill="#1D4ED8" />
-      </svg>
-    );
-  }
-  if (locale === "es-ES") {
-    return (
-      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
-        <rect width="16" height="2.75" fill="#DC2626" />
-        <rect y="2.75" width="16" height="5.5" fill="#FACC15" />
-        <rect y="8.25" width="16" height="2.75" fill="#DC2626" />
-      </svg>
-    );
-  }
-  if (locale === "zh-CN") {
-    return (
-      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
-        <rect width="16" height="11" fill="#DC2626" />
-        <circle cx="3.5" cy="3.5" r="1.5" fill="#FACC15" />
-      </svg>
-    );
-  }
-  if (locale === "ar-SA") {
-    return (
-      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
-        <rect width="16" height="11" fill="#047857" />
-        <rect x="3" y="5" width="10" height="1" fill="#F8FAFC" />
-      </svg>
-    );
-  }
-  if (locale === "ur-PK") {
-    return (
-      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
-        <rect width="4" height="11" fill="#F8FAFC" />
-        <rect x="4" width="12" height="11" fill="#047857" />
-        <circle cx="10" cy="5.5" r="2.2" fill="#F8FAFC" />
-      </svg>
-    );
-  }
+const LOCALE_FLAG_MAP = {
+  auto: "🌐",
+  autodetect: "🌐",
+  "en-US": "🇺🇸",
+  en: "🇺🇸",
+  "de-DE": "🇩🇪",
+  de: "🇩🇪",
+  "fr-FR": "🇫🇷",
+  fr: "🇫🇷",
+  "es-ES": "🇪🇸",
+  es: "🇪🇸",
+  "ar-SA": "🇸🇦",
+  ar: "🇸🇦",
+  "ur-PK": "🇵🇰",
+  ur: "🇵🇰",
+  "hi-IN": "🇮🇳",
+  hi: "🇮🇳",
+  "zh-CN": "🇨🇳",
+  zh: "🇨🇳",
+  "ja-JP": "🇯🇵",
+  ja: "🇯🇵",
+  "ko-KR": "🇰🇷",
+  ko: "🇰🇷",
+  "it-IT": "🇮🇹",
+  it: "🇮🇹",
+  "pt-BR": "🇧🇷",
+  pt: "🇧🇷",
+  "nl-NL": "🇳🇱",
+  nl: "🇳🇱",
+  "tr-TR": "🇹🇷",
+  tr: "🇹🇷",
+  "ru-RU": "🇷🇺",
+  ru: "🇷🇺",
+  "sv-SE": "🇸🇪",
+  sv: "🇸🇪",
+  "pl-PL": "🇵🇱",
+  pl: "🇵🇱",
+  "id-ID": "🇮🇩",
+  id: "🇮🇩",
+  "vi-VN": "🇻🇳",
+  vi: "🇻🇳",
+  "th-TH": "🇹🇭",
+  th: "🇹🇭",
+  "da-DK": "🇩🇰",
+  da: "🇩🇰",
+  "fi-FI": "🇫🇮",
+  fi: "🇫🇮",
+  "nb-NO": "🇳🇴",
+  no: "🇳🇴",
+  "el-GR": "🇬🇷",
+  el: "🇬🇷",
+  "cs-CZ": "🇨🇿",
+  cs: "🇨🇿",
+  "uk-UA": "🇺🇦",
+  uk: "🇺🇦",
+  "he-IL": "🇮🇱",
+  he: "🇮🇱",
+  "fa-IR": "🇮🇷",
+  fa: "🇮🇷",
+};
+
+export function LocaleFlag({ locale = "de-DE", className = "" }) {
+  const norm = (locale || "de-DE").trim();
+  const flag = LOCALE_FLAG_MAP[norm] || LOCALE_FLAG_MAP[norm.split("-")[0].toLowerCase()] || "🌐";
   return (
-    <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
-      <rect width="16" height="3.66" fill="#18181B" />
-      <rect y="3.66" width="16" height="3.67" fill="#DC2626" />
-      <rect y="7.33" width="16" height="3.67" fill="#FACC15" />
-    </svg>
+    <span
+      className={`locale-flag-badge ${className}`}
+      role="img"
+      aria-label={locale}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "13px",
+        lineHeight: 1,
+        userSelect: "none",
+        flexShrink: 0,
+      }}
+    >
+      {flag}
+    </span>
   );
 }

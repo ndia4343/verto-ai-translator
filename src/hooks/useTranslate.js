@@ -32,9 +32,11 @@ export function cleanSourceText(text) {
 }
 
 export async function fetchMyMemoryTranslation(text, src, tgt, signal) {
-  if (src === tgt) return text;
+  if (src !== "auto" && src !== "autodetect" && src === tgt) return text;
   const clean = cleanSourceText(text);
   if (!clean) return "";
+
+  const mmSrc = src === "auto" ? "autodetect" : src;
 
   // Guard against known corrupted crowd-sourced TM entries in MyMemory
   if (clean.toLowerCase() === "how are you" && tgt === "de") {
@@ -42,7 +44,7 @@ export async function fetchMyMemoryTranslation(text, src, tgt, signal) {
   }
 
   if (clean.length <= 500) {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=${encodeURIComponent(src)}|${encodeURIComponent(tgt)}`;
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=${encodeURIComponent(mmSrc)}|${encodeURIComponent(tgt)}`;
     const res = await fetch(url, { signal });
     if (!res.ok) {
       throw new Error(`MyMemory fallback HTTP ${res.status}`);
@@ -63,7 +65,7 @@ export async function fetchMyMemoryTranslation(text, src, tgt, signal) {
   for (const chunk of chunks) {
     const trimmed = chunk.trim();
     if (!trimmed) continue;
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=${encodeURIComponent(src)}|${encodeURIComponent(tgt)}`;
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=${encodeURIComponent(mmSrc)}|${encodeURIComponent(tgt)}`;
     const res = await fetch(url, { signal });
     if (!res.ok) {
       throw new Error(`MyMemory fallback HTTP ${res.status}`);
@@ -76,11 +78,12 @@ export async function fetchMyMemoryTranslation(text, src, tgt, signal) {
 }
 
 export async function fetchGtxTranslation(text, src, tgt, signal) {
-  if (src === tgt) return text;
+  if (src !== "auto" && src !== "autodetect" && src === tgt) return text;
   const clean = cleanSourceText(text);
   if (!clean) return "";
 
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(src)}&tl=${encodeURIComponent(tgt)}&dt=t&q=${encodeURIComponent(clean)}`;
+  const gtxSrc = src === "autodetect" ? "auto" : src;
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(gtxSrc)}&tl=${encodeURIComponent(tgt)}&dt=t&q=${encodeURIComponent(clean)}`;
   const res = await fetch(url, { signal });
   if (!res.ok) {
     throw new Error(`GTX HTTP ${res.status}`);
@@ -142,14 +145,14 @@ export function useTranslate() {
       return "";
     }
 
-    const src = toIsoCode(source_lang || sourceLang || "en");
+    const src = toIsoCode(source_lang || sourceLang || "auto");
     const tgt = toIsoCode(target_lang || targetLang || "");
     if (!tgt) {
       setError("Target language is required");
       return null;
     }
 
-    if (src === tgt) {
+    if (src !== "auto" && src !== "autodetect" && src === tgt) {
       setError(null);
       setLoading(false);
       return cleanText;

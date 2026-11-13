@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import Tesseract from "tesseract.js";
 import { useTranslate } from "../hooks/useTranslate";
-import { SUPPORTED_LOCALES } from "../constants/locales.js";
+import { SUPPORTED_LOCALES, SOURCE_LOCALES } from "../constants/locales.js";
 import {
   IconBolt,
   IconLock,
@@ -376,7 +376,7 @@ export default function Home({ showToast }) {
   } = useTranslate();
 
   const [segIdx, setSegIdx] = useState(0);
-  const [sourceLang] = useState("en");
+  const [sourceLang, setSourceLang] = useState("auto");
   const [locale, setLocale] = useState("de-DE");
   const [toneMode, setToneMode] = useState("legal");
   const [glossaryLocked, setGlossaryLocked] = useState(true);
@@ -411,7 +411,7 @@ export default function Home({ showToast }) {
     document.getElementById("precision-matrix")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const runAstMatrix = async (targetLocale = locale) => {
+  const runAstMatrix = async (targetLocale = locale, srcLocale = sourceLang) => {
     if (!sourceText.trim()) {
       showToast("Enter, paste, or scan source text first");
       sourceTextareaRef.current?.focus();
@@ -419,12 +419,13 @@ export default function Home({ showToast }) {
     }
 
     const targetLang = targetLocale.split("-")[0];
+    const srcLang = srcLocale === "auto" ? "auto" : srcLocale.split("-")[0];
     setOcrError(null);
     const result = await translate({
       text: sourceText,
-      source_lang: sourceLang,
+      source_lang: srcLang,
       target_lang: targetLang,
-      sourceLang,
+      sourceLang: srcLang,
       targetLang,
     });
 
@@ -712,10 +713,36 @@ export default function Home({ showToast }) {
                 </div>
               )}
 
-              {/* Source Block [en-US] */}
+              {/* Source Block */}
               <div className="diff-block src-block">
                 <div className="diff-block-hdr">
-                  <span>SOURCE [en-US] · EDITABLE BUFFER</span>
+                  <div className="src-hdr-left">
+                    <span className="src-label-prefix">SOURCE</span>
+                    <div className="matrix-source-select-box">
+                      <LocaleFlag locale={sourceLang} />
+                      <select
+                        id="matrix-source-select"
+                        className="matrix-source-select"
+                        value={sourceLang}
+                        onChange={(e) => {
+                          const nextSrc = e.target.value;
+                          setSourceLang(nextSrc);
+                          if (targetMode === "live") {
+                            runAstMatrix(locale, nextSrc);
+                          }
+                        }}
+                        aria-label="Source Language"
+                      >
+                        {SOURCE_LOCALES.map((item) => (
+                          <option key={item.locale} value={item.locale}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="matrix-locale-chevron" aria-hidden="true">▾</span>
+                    </div>
+                    <span className="src-buffer-tag">· EDITABLE BUFFER</span>
+                  </div>
                   <div className="src-hdr-tools">
                     <button
                       type="button"
@@ -749,11 +776,10 @@ export default function Home({ showToast }) {
                   value={sourceText}
                   onChange={(e) => {
                     setSourceText(e.target.value);
+                    setTranslatedText("");
+                    setTargetMode("pending");
                     setOcrError(null);
                     clearError();
-                    if (targetMode !== "pending") {
-                      setTargetMode("pending");
-                    }
                   }}
                   placeholder="Enter or paste enterprise source string to analyze..."
                   rows={4}
@@ -816,10 +842,14 @@ export default function Home({ showToast }) {
 
                 {translating ? (
                   <p className="diff-text diff-muted">
-                    Compiling localized AST segment via Hugging Face translation engine...
+                    Compiling localized AST segment via translation engine...
                   </p>
                 ) : targetMode === "live" && translatedText ? (
                   <p className="diff-text">{translatedText}</p>
+                ) : targetMode === "pending" ? (
+                  <p className="diff-text diff-muted">
+                    Ready — click Run AST Matrix to translate
+                  </p>
                 ) : targetMode === "sample" ? (
                   <p className="diff-text">
                     {activeCopy.prefix}
@@ -830,7 +860,7 @@ export default function Home({ showToast }) {
                   <p className="diff-text">{translatedText}</p>
                 ) : (
                   <p className="diff-text diff-muted">
-                    Click &ldquo;Run AST Matrix&rdquo; or &ldquo;Start Enterprise Trial&rdquo; to translate source buffer into {locale}.
+                    Ready — click Run AST Matrix to translate
                   </p>
                 )}
               </div>
