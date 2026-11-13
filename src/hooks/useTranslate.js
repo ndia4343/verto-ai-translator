@@ -6,7 +6,54 @@ export const TRANSLATE_API_BASE_URL = (
   "https://aikahan-linguaflow-ai-translator-api.hf.space"
 ).replace(/\/+$/, "");
 
-const REQUEST_TIMEOUT_MS = 25000;
+const HF_TIMEOUT_MS = 4000;
+
+export function decodeHtmlEntities(str) {
+  if (!str || typeof str !== "string") return "";
+  return str
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, "/")
+    .replace(/&apos;/g, "'");
+}
+
+async function fetchMyMemoryTranslation(text, src, tgt, signal) {
+  if (src === tgt) return text;
+
+  if (text.length <= 500) {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(src)}|${encodeURIComponent(tgt)}`;
+    const res = await fetch(url, { signal });
+    if (!res.ok) {
+      throw new Error(`MyMemory fallback HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const raw = data?.responseData?.translatedText;
+    if (typeof raw !== "string" || !raw.trim()) {
+      throw new Error("Invalid response from MyMemory");
+    }
+    return decodeHtmlEntities(raw);
+  }
+
+  const chunks = text.match(/[^.!?\n]+[.!?\n]+|[^.!?\n]+$/g) || [text];
+  const translatedChunks = [];
+  for (const chunk of chunks) {
+    const trimmed = chunk.trim();
+    if (!trimmed) continue;
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=${encodeURIComponent(src)}|${encodeURIComponent(tgt)}`;
+    const res = await fetch(url, { signal });
+    if (!res.ok) {
+      throw new Error(`MyMemory fallback HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    const raw = data?.responseData?.translatedText;
+    translatedChunks.push(typeof raw === "string" ? decodeHtmlEntities(raw) : trimmed);
+  }
+  return translatedChunks.join(" ");
+}
 
 async function parseResponseBody(res) {
   const raw = await res.text();
@@ -51,11 +98,17 @@ export function useTranslate() {
       return "";
     }
 
-    const src = (source_lang || sourceLang || "en").split("-")[0];
-    const tgt = (target_lang || targetLang || "").split("-")[0];
+    const src = (source_lang || sourceLang || "en").split("-")[0].toLowerCase();
+    const tgt = (target_lang || targetLang || "").split("-")[0].toLowerCase();
     if (!tgt) {
       setError("Target language is required");
       return null;
+    }
+
+    if (src === tgt) {
+      setError(null);
+      setLoading(false);
+      return text;
     }
 
     abortRef.current?.abort("superseded");
@@ -63,16 +116,17 @@ export function useTranslate() {
     abortRef.current = controller;
     const reqId = ++requestIdRef.current;
 
-    let timedOut = false;
-    const timeoutId = setTimeout(() => {
-      timedOut = true;
-      controller.abort("timeout");
-    }, REQUEST_TIMEOUT_MS);
-
     setLoading(true);
     setError(null);
 
+    // Primary: Hugging Face translation API with 4s timeout
+    let hfTranslated = null;
     try {
+      const hfController = new AbortController();
+      const hfTimer = setTimeout(() => {
+        hfController.abort("hf_timeout");
+      }, HF_TIMEOUT_MS);
+
       const token = localStorage.getItem("verto_token");
       const headers = {
         "Content-Type": "application/json",
@@ -87,61 +141,86 @@ export function useTranslate() {
         targetLang: tgt,
       });
 
-      let res = await fetch(`${TRANSLATE_API_BASE_URL}/api/translate`, {
-        method: "POST",
-        headers,
-        body,
-        signal: controller.signal,
-      });
+      const onParentAbort = () => hfController.abort("parent_abort");
+      controller.signal.addEventListener("abort", onParentAbort);
 
-      if (res.status === 404) {
-        res = await fetch(`${TRANSLATE_API_BASE_URL}/translate`, {
+      try {
+        let res = await fetch(`${TRANSLATE_API_BASE_URL}/translate`, {
           method: "POST",
           headers,
           body,
-          signal: controller.signal,
+          signal: hfController.signal,
         });
-      }
 
-      const data = await parseResponseBody(res);
-      if (!res.ok) {
-        throw new Error(formatApiError(res, data));
-      }
-
-      const translated =
-        data.translation ??
-        data.translated_text ??
-        data.translatedText ??
-        data.result ??
-        null;
-
-      if (typeof translated !== "string") {
-        throw new Error("Invalid translation response from API");
-      }
-
-      if (reqId === requestIdRef.current) {
-        setProvider(data.provider || null);
-      }
-
-      return translated;
-    } catch (e) {
-      if (timedOut) {
-        if (reqId === requestIdRef.current) {
-          setError("Translation request timed out — Hugging Face Space may be paused or cold-starting. Retry shortly.");
+        if (res.status === 404) {
+          res = await fetch(`${TRANSLATE_API_BASE_URL}/api/translate`, {
+            method: "POST",
+            headers,
+            body,
+            signal: hfController.signal,
+          });
         }
-        return null;
+
+        if (res.ok) {
+          const data = await parseResponseBody(res);
+          const candidate =
+            data.translation ??
+            data.translated_text ??
+            data.translatedText ??
+            data.result ??
+            null;
+          if (typeof candidate === "string" && candidate.trim()) {
+            hfTranslated = candidate;
+            if (reqId === requestIdRef.current) {
+              setProvider(data.provider || "huggingface");
+              setError(null);
+            }
+          }
+        }
+      } finally {
+        clearTimeout(hfTimer);
+        controller.signal.removeEventListener("abort", onParentAbort);
       }
-      if (e?.name === "AbortError" || reqId !== requestIdRef.current) {
+    } catch {
+      // Hugging Face offline, cold-starting, timed out, or blocked by CORS
+      hfTranslated = null;
+    }
+
+    if (controller.signal.aborted || reqId !== requestIdRef.current) {
+      return undefined;
+    }
+
+    if (hfTranslated) {
+      if (reqId === requestIdRef.current) {
+        setLoading(false);
+      }
+      return hfTranslated;
+    }
+
+    // Secondary / Fallback: Public CORS-enabled MyMemory REST API
+    try {
+      const fallbackResult = await fetchMyMemoryTranslation(text, src, tgt, controller.signal);
+      if (reqId === requestIdRef.current) {
+        setProvider("mymemory");
+        setError(null);
+        setLoading(false);
+      }
+      return fallbackResult;
+    } catch (fbErr) {
+      if (controller.signal.aborted || reqId !== requestIdRef.current) {
         return undefined;
       }
-      setError(
-        /failed to fetch|networkerror|load failed/i.test(e?.message || "")
-          ? "Unable to reach Hugging Face translation API — the Space may be paused, cold-starting, or offline."
-          : e.message || "Translation service unavailable"
-      );
+      if (reqId === requestIdRef.current) {
+        setError(
+          /failed to fetch|networkerror|load failed/i.test(fbErr?.message || "")
+            ? "Translation service offline. Please check your network connection."
+            : fbErr?.message || "Translation service unavailable"
+        );
+        setProvider(null);
+        setLoading(false);
+      }
       return null;
     } finally {
-      clearTimeout(timeoutId);
       if (reqId === requestIdRef.current) {
         setLoading(false);
       }

@@ -50,7 +50,7 @@
   position: relative;
   background: #121714;
   border: 1px solid rgba(171, 255, 79, 0.18);
-  min-height: 360px;
+  min-height: 440px;
 }
 
 .cam-video {
@@ -125,8 +125,10 @@
 .demo-viewport {
   position: relative;
   width: 100%;
-  height: 360px;
+  height: 440px;
+  min-height: 440px;
   overflow: hidden;
+  padding-bottom: 40px;
 }
 
 .demo-bg {
@@ -172,7 +174,7 @@
 
 .demo-hint {
   position: absolute;
-  bottom: 12px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(9, 10, 9, 0.9);
@@ -183,6 +185,7 @@
   font-family: var(--mono);
   font-size: 11px;
   white-space: nowrap;
+  z-index: 5;
 }
 
 .cam-err {

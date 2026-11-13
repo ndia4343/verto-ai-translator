@@ -40,6 +40,7 @@
 html {
   scroll-behavior: smooth;
   color-scheme: dark;
+  overflow-y: auto;
 }
 
 body {
@@ -48,6 +49,7 @@ body {
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
+  overflow-y: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

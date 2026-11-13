@@ -294,6 +294,51 @@ export function LocaleFlag({ locale = "de-DE" }) {
       </svg>
     );
   }
+  if (locale === "en-US") {
+    return (
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
+        <rect width="16" height="11" fill="#DC2626" />
+        <rect y="1.5" width="16" height="1.6" fill="#F8FAFC" />
+        <rect y="4.7" width="16" height="1.6" fill="#F8FAFC" />
+        <rect y="7.9" width="16" height="1.6" fill="#F8FAFC" />
+        <rect width="7" height="6" fill="#1D4ED8" />
+      </svg>
+    );
+  }
+  if (locale === "es-ES") {
+    return (
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
+        <rect width="16" height="2.75" fill="#DC2626" />
+        <rect y="2.75" width="16" height="5.5" fill="#FACC15" />
+        <rect y="8.25" width="16" height="2.75" fill="#DC2626" />
+      </svg>
+    );
+  }
+  if (locale === "zh-CN") {
+    return (
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
+        <rect width="16" height="11" fill="#DC2626" />
+        <circle cx="3.5" cy="3.5" r="1.5" fill="#FACC15" />
+      </svg>
+    );
+  }
+  if (locale === "ar-SA") {
+    return (
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
+        <rect width="16" height="11" fill="#047857" />
+        <rect x="3" y="5" width="10" height="1" fill="#F8FAFC" />
+      </svg>
+    );
+  }
+  if (locale === "ur-PK") {
+    return (
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
+        <rect width="4" height="11" fill="#F8FAFC" />
+        <rect x="4" width="12" height="11" fill="#047857" />
+        <circle cx="10" cy="5.5" r="2.2" fill="#F8FAFC" />
+      </svg>
+    );
+  }
   return (
     <svg width="16" height="11" viewBox="0 0 16 11" fill="none" aria-hidden="true" style={{ borderRadius: 2 }}>
       <rect width="16" height="3.66" fill="#18181B" />

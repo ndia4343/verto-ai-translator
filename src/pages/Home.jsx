@@ -87,6 +87,96 @@ const SEGMENTS = [
             " は、第三者からの知的財産請求についてエンタープライズ顧客を完全に保護します...",
         },
       },
+      "en-US": {
+        confidence: "99.8%",
+        legal: {
+          prefix: "3.4 Indemnification and Limitation of Liability. ",
+          suffix:
+            " shall defend, indemnify, and hold harmless Enterprise Client from and against all third-party IP claims...",
+        },
+        technical: {
+          prefix: "3.4 IP Infringement Hold-Harmless Warranty. ",
+          suffix:
+            " defends Enterprise Client against IP claims from third parties...",
+        },
+        executive: {
+          prefix: "3.4 Corporate Legal Protection and Liability. ",
+          suffix:
+            " fully covers Enterprise Client regarding all intellectual property claims...",
+        },
+      },
+      "es-ES": {
+        confidence: "98.9%",
+        legal: {
+          prefix: "3.4 Indemnización y Limitación de Responsabilidad. ",
+          suffix:
+            " defenderá, indemnizará y mantendrá indemne al Cliente Corporativo frente a reclamaciones de terceros...",
+        },
+        technical: {
+          prefix: "3.4 Garantía de Propiedad Intelectual. ",
+          suffix:
+            " garantiza al Cliente Corporativo ante acciones de infracción de terceros...",
+        },
+        executive: {
+          prefix: "3.4 Protección Legal y Responsabilidad Corporativa. ",
+          suffix:
+            " cubre íntegramente al Cliente Corporativo ante demandas de propiedad intelectual...",
+        },
+      },
+      "ar-SA": {
+        confidence: "98.2%",
+        legal: {
+          prefix: "3.4 التعويض وتحديد المسؤولية. ",
+          suffix:
+            " تلتزم بالدفاع والتعويض وحماية العميل المؤسسي من مطالبات الملكية الفكرية من الغير...",
+        },
+        technical: {
+          prefix: "3.4 ضمان عدم انتهاك الملكية الفكرية. ",
+          suffix:
+            " تحمي العميل المؤسسي من أي مطالبات تقنية أو قانونية...",
+        },
+        executive: {
+          prefix: "3.4 الحماية القانونية المؤسسية. ",
+          suffix:
+            " توفر تغطية شاملة للعميل المؤسسي ضد نزاعات الملكية الفكرية...",
+        },
+      },
+      "ur-PK": {
+        confidence: "98.0%",
+        legal: {
+          prefix: "3.4 تلافی اور ذمہ داری کی حد۔ ",
+          suffix:
+            " کارپوریٹ کلائنٹ کا تیسرے فریق کے دانشورانہ املاک کے دعووں سے مکمل دفاع اور تحفظ کرے گا...",
+        },
+        technical: {
+          prefix: "3.4 دانشورانہ املاک کی وارنٹی کلاز۔ ",
+          suffix:
+            " انٹرپرائز کلائنٹ کو کسی بھی بیرونی قانونی چیلنج سے محفوظ رکھتا ہے...",
+        },
+        executive: {
+          prefix: "3.4 کارپوریٹ قانونی تحفظ اور بوجھ۔ ",
+          suffix:
+            " تیسرے فریق کے تمام آئی پی دعووں کے خلاف جامع کوریج فراہم کرتا ہے...",
+        },
+      },
+      "zh-CN": {
+        confidence: "98.6%",
+        legal: {
+          prefix: "3.4 赔偿与责任限制。 ",
+          suffix:
+            " 应为企业客户提供抗辩，就第三方提起的知识产权侵权索赔进行赔偿并使其免受损害...",
+        },
+        technical: {
+          prefix: "3.4 知识产权免责保证条款。 ",
+          suffix:
+            " 确保企业客户免受第三方知识产权诉讼与侵权指控...",
+        },
+        executive: {
+          prefix: "3.4 企业法律保护与责任范围。 ",
+          suffix:
+            " 为企业客户提供针对所有知识产权纠纷的全方位保障...",
+        },
+      },
     },
   },
   {
@@ -152,6 +242,96 @@ const SEGMENTS = [
             " は eu-central-1 リージョン内での完全非保持処理を確約します。",
         },
       },
+      "en-US": {
+        confidence: "99.9%",
+        legal: {
+          prefix: "5.1 Regional Tenant Isolation. ",
+          suffix:
+            " guarantees zero payload retention outside the designated Frankfurt (eu-central-1) cryptographic enclave.",
+        },
+        technical: {
+          prefix: "5.1 Regional Tenant Boundary Control. ",
+          suffix:
+            " ensures zero payload retention outside the eu-central-1 enclave.",
+        },
+        executive: {
+          prefix: "5.1 Data Residency and Sovereign Isolation. ",
+          suffix:
+            " commits to zero data persistence beyond the Frankfurt region.",
+        },
+      },
+      "es-ES": {
+        confidence: "99.0%",
+        legal: {
+          prefix: "5.1 Aislamiento Regional de Inquilinos. ",
+          suffix:
+            " garantiza cero retención de carga útil fuera del enclave criptográfico designado de Fráncfort (eu-central-1).",
+        },
+        technical: {
+          prefix: "5.1 Segregación de Entornos a Nivel Regional. ",
+          suffix:
+            " asegura cero retención de datos fuera del enclave eu-central-1.",
+        },
+        executive: {
+          prefix: "5.1 Residencia de Datos Garantizada. ",
+          suffix:
+            " mantiene todas las cargas útiles dentro de la región eu-central-1 sin persistencia.",
+        },
+      },
+      "ar-SA": {
+        confidence: "98.5%",
+        legal: {
+          prefix: "5.1 العزل الإقليمي للمستأجرين. ",
+          suffix:
+            " تضمن عدم الاحتفاظ بأي بيانات خارج الجيب التشفيري المخصص في فرانكفورت (eu-central-1).",
+        },
+        technical: {
+          prefix: "5.1 الفصل الإقليمي لبيئات العمل. ",
+          suffix:
+            " تضمن عدم وجود أي بقايا للبيانات خارج نطاق eu-central-1.",
+        },
+        executive: {
+          prefix: "5.1 سيادة البيانات والإقامة الإقليمية. ",
+          suffix:
+            " تؤكد معالجة البيانات حصرياً داخل منطقة فرانكفورت دون تخزين مؤقت.",
+        },
+      },
+      "ur-PK": {
+        confidence: "98.1%",
+        legal: {
+          prefix: "5.1 علاقائی کرایہ دار کی تنہائی۔ ",
+          suffix:
+            " نامزد فرینکفرٹ (eu-central-1) کرپٹوگرافک انکلیو کے باہر صفر پے لوڈ برقرار رکھنے کی ضمانت دیتا ہے۔",
+        },
+        technical: {
+          prefix: "5.1 علاقائی سطح پر کلاؤڈ تنہائی۔ ",
+          suffix:
+            " انکلیو eu-central-1 کے باہر صفر ڈیٹا اسٹوریج کی یقین دہانی کراتی ہے۔",
+        },
+        executive: {
+          prefix: "5.1 ڈیٹا ریزیڈنسی اور قانونی خودمختاری۔ ",
+          suffix:
+            " فرینکفرٹ کے محفوظ زون میں بغیر کسی مستقل اسٹوریج کے مکمل پروسیسنگ فراہم کرتا ہے۔",
+        },
+      },
+      "zh-CN": {
+        confidence: "98.9%",
+        legal: {
+          prefix: "5.1 区域租户隔离。 ",
+          suffix:
+            " 保证在指定的法兰克福（eu-central-1）加密隔离区之外零数据留存。",
+        },
+        technical: {
+          prefix: "5.1 区域级多租户边界。 ",
+          suffix:
+            " 确保在 eu-central-1 隔离区之外不留存任何有效载荷。",
+        },
+        executive: {
+          prefix: "5.1 数据驻留与合规隔离。 ",
+          suffix:
+            " 承诺在法兰克福区域内处理数据且不保留任何持久化缓存。",
+        },
+      },
     },
   },
 ];
@@ -183,7 +363,16 @@ const CAPABILITIES = [
   },
 ];
 
-const LOCALE_CYCLE = ["de-DE", "fr-FR", "ja-JP"];
+export const MATRIX_LANGUAGES = [
+  { locale: "en-US", code: "en", label: "en-US (English)" },
+  { locale: "de-DE", code: "de", label: "de-DE (German)" },
+  { locale: "fr-FR", code: "fr", label: "fr-FR (French)" },
+  { locale: "es-ES", code: "es", label: "es-ES (Spanish)" },
+  { locale: "ar-SA", code: "ar", label: "ar-SA (Arabic)" },
+  { locale: "ur-PK", code: "ur", label: "ur-PK (Urdu)" },
+  { locale: "zh-CN", code: "zh", label: "zh-CN (Chinese)" },
+  { locale: "ja-JP", code: "ja", label: "ja-JP (Japanese)" },
+];
 
 export default function Home({ showToast }) {
   const {
@@ -215,8 +404,15 @@ export default function Home({ showToast }) {
   const sourceTextareaRef = useRef(null);
 
   const segment = SEGMENTS[segIdx];
-  const locData = segment.translations[locale] || segment.translations["de-DE"];
-  const activeCopy = locData[toneMode] || locData.legal;
+  const locData =
+    segment.translations[locale] ||
+    segment.translations["de-DE"] || {
+      confidence: "98.5%",
+      legal: { prefix: segment.srcPrefix, suffix: segment.srcSuffix },
+      technical: { prefix: segment.srcPrefix, suffix: segment.srcSuffix },
+      executive: { prefix: segment.srcPrefix, suffix: segment.srcSuffix },
+    };
+  const activeCopy = locData[toneMode] || locData.legal || { prefix: "", suffix: "" };
   const isApproved = approvedIds.has(`${segment.id}-${locale}`);
 
   const scrollToMatrix = () => {
@@ -430,15 +626,27 @@ export default function Home({ showToast }) {
                       <IconUpload size={13} />
                       <span>{ocrActive ? "Scanning..." : "Scan Document / Image"}</span>
                     </button>
-                    <button
-                      type="button"
-                      className="locale-badge-btn"
-                      onClick={cycleLocale}
-                      title="Click to switch target locale"
-                    >
+                    <div className="matrix-locale-select-wrap">
                       <LocaleFlag locale={locale} />
-                      <span>{locale}</span>
-                    </button>
+                      <select
+                        id="matrix-locale-select"
+                        className="matrix-locale-select"
+                        value={locale}
+                        onChange={(e) => {
+                          const nextLocale = e.target.value;
+                          setLocale(nextLocale);
+                          runAstMatrix(nextLocale);
+                        }}
+                        aria-label="Target matrix locale"
+                      >
+                        {MATRIX_LANGUAGES.map((item) => (
+                          <option key={item.locale} value={item.locale}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="matrix-locale-chevron" aria-hidden="true">▾</span>
+                    </div>
                   </div>
                   <div className="mc-version">v4.2.1-prod</div>
                 </div>
@@ -528,7 +736,9 @@ export default function Home({ showToast }) {
                       {translating
                         ? "COMPILING AST"
                         : targetMode === "live"
-                        ? `LIVE HF API${provider ? ` (${provider.toUpperCase()})` : ""}`
+                        ? provider === "mymemory"
+                          ? "FALLBACK NEURAL ACTIVE"
+                          : `LIVE HF API${provider ? ` (${provider.toUpperCase()})` : ""}`
                         : "NEURAL FORMAL"}
                     </span>
                   </span>
@@ -536,7 +746,9 @@ export default function Home({ showToast }) {
                     {translating
                       ? "Translating..."
                       : targetMode === "error"
-                      ? "Fallback Alert"
+                      ? "Offline Alert"
+                      : provider === "mymemory"
+                      ? "Neural Fallback"
                       : targetMode === "live"
                       ? "Live Verified"
                       : targetMode === "pending"
@@ -545,7 +757,14 @@ export default function Home({ showToast }) {
                   </span>
                 </div>
 
-                {translateError && (
+                {provider === "mymemory" && (
+                  <div className="fallback-engine-badge" role="status">
+                    <span className="fb-dot" />
+                    <span>Fallback Neural Engine Active</span>
+                  </div>
+                )}
+
+                {translateError && provider !== "mymemory" && (
                   <div className="matrix-fallback-err" role="alert">
                     <span>{translateError}</span>
                     <button
@@ -599,7 +818,7 @@ export default function Home({ showToast }) {
               {/* Regulatory Engine Tone Selector */}
               <div className="tone-selector-wrap">
                 <label htmlFor="reg-tone" className="tone-selector-label">
-                  Regulatory Engine Tone
+                  Regulatory Engine Tone ({locale})
                 </label>
                 <div className="tone-select-box">
                   <select

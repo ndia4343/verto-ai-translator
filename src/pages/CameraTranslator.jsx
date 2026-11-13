@@ -30,14 +30,14 @@ const DEMO_ASSETS = [
     text: "Freigabe erforderlich",
     trans: "Approval Required",
     from: "de-DE",
-    style: { bottom: "68px", right: "24px" },
+    style: { bottom: "76px", right: "24px" },
   },
   {
     id: "UI-05",
     text: "AcmeCorp™ Enterprise",
     trans: "AcmeCorp™ Enterprise (Locked)",
     from: "de-DE",
-    style: { bottom: "22px", left: "24px" },
+    style: { bottom: "64px", left: "24px" },
   },
 ];
 
