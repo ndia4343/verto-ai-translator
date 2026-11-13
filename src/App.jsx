@@ -35,6 +35,7 @@ export default function App() {
     "segment-workbench": TextTranslator,
     "camera-translator": CameraTranslator,
     "document-translator": DocumentTranslator,
+    "document-pipeline": DocumentTranslator,
     voice: VoicePage,
     pricing: Pricing,
     phrasebook: PhrasebookPage,

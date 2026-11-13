@@ -443,28 +443,72 @@ export default function Home({ showToast }) {
     e.target.value = "";
     if (!file) return;
 
-    setOcrActive(true);
+    const ext = file.name.split(".").pop().toLowerCase();
+
+    // If an unsupported binary file (like a .pdf or .docx) is picked
+    if (ext === "pdf" || ext === "docx" || ext === "doc" || ext === "xlsx" || ext === "pptx") {
+      setOcrError("PDF files require the Document Pipeline tab — upload PNG, JPG, WEBP, or TXT here.");
+      showToast("PDF files require the Document Pipeline tab — upload PNG, JPG, WEBP, or TXT here.");
+      return;
+    }
+
     setOcrError(null);
     clearError();
-    try {
-      const { data } = await Tesseract.recognize(file, "eng");
-      const extracted = (data?.text || "").replace(/[ \t]+\n/g, "\n").trim();
-      if (!extracted) {
-        setOcrError("No readable text tokens detected in uploaded image.");
-        showToast("OCR completed — no readable text detected");
-      } else {
-        setSourceText(extracted);
-        setActiveDocName(file.name);
-        setTranslatedText("");
-        setTargetMode("pending");
-        showToast(`OCR extracted ${extracted.length} characters from ${file.name}`);
+
+    // If the uploaded file is .txt, read it directly with FileReader into sourceText without running Tesseract OCR
+    if (ext === "txt" || file.type === "text/plain") {
+      try {
+        const text = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result || "");
+          reader.onerror = reject;
+          reader.readAsText(file, "utf-8");
+        });
+        const trimmed = (text || "").trim();
+        if (!trimmed) {
+          setOcrError("Uploaded TXT file is empty.");
+          showToast("Uploaded TXT file is empty");
+        } else {
+          setSourceText(trimmed);
+          setActiveDocName(file.name);
+          setTranslatedText("");
+          setTargetMode("pending");
+          showToast(`Imported ${trimmed.length} characters from ${file.name}`);
+        }
+      } catch {
+        setOcrError("Failed to read text file. Please try again.");
+        showToast("Error reading file");
       }
-    } catch {
-      setOcrError("In-browser OCR failed to decode image. Please select a valid PNG, JPG, or WEBP file.");
-      showToast("OCR scan failed");
-    } finally {
-      setOcrActive(false);
+      return;
     }
+
+    // If image, run Tesseract OCR as normal
+    if (["png", "jpg", "jpeg", "webp"].includes(ext) || file.type.startsWith("image/")) {
+      setOcrActive(true);
+      try {
+        const { data } = await Tesseract.recognize(file, "eng");
+        const extracted = (data?.text || "").replace(/[ \t]+\n/g, "\n").trim();
+        if (!extracted) {
+          setOcrError("No readable text tokens detected in uploaded image.");
+          showToast("OCR completed — no readable text detected");
+        } else {
+          setSourceText(extracted);
+          setActiveDocName(file.name);
+          setTranslatedText("");
+          setTargetMode("pending");
+          showToast(`OCR extracted ${extracted.length} characters from ${file.name}`);
+        }
+      } catch {
+        setOcrError("In-browser OCR failed to decode image. Please select a valid PNG, JPG, or WEBP file.");
+        showToast("OCR scan failed");
+      } finally {
+        setOcrActive(false);
+      }
+      return;
+    }
+
+    setOcrError("PDF files require the Document Pipeline tab — upload PNG, JPG, WEBP, or TXT here.");
+    showToast("PDF files require the Document Pipeline tab — upload PNG, JPG, WEBP, or TXT here.");
   };
 
   const cycleLocale = () => {
@@ -604,7 +648,7 @@ export default function Home({ showToast }) {
                     <input
                       ref={ocrInputRef}
                       type="file"
-                      accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+                      accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp,.txt,text/plain"
                       onChange={handleOcrScan}
                       style={{ display: "none" }}
                     />
@@ -613,7 +657,7 @@ export default function Home({ showToast }) {
                       className="scan-doc-btn"
                       onClick={() => ocrInputRef.current?.click()}
                       disabled={ocrActive}
-                      title="Scan image (.png, .jpg, .webp) using in-browser OCR"
+                      title="Upload TXT file or scan image (.png, .jpg, .webp) using in-browser OCR"
                     >
                       <IconUpload size={13} />
                       <span>{ocrActive ? "Scanning..." : "Scan Document / Image"}</span>
