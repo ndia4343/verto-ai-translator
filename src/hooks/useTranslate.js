@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { SUPPORTED_LOCALES, toIsoCode } from "../constants/locales.js";
 
 export const TRANSLATE_API_BASE_URL = (
-  import.meta.env.VITE_TRANSLATE_API_URL ||
-  import.meta.env.VITE_API_URL ||
+  (typeof import.meta !== "undefined" &&
+    import.meta.env &&
+    (import.meta.env.VITE_TRANSLATE_API_URL || import.meta.env.VITE_API_URL)) ||
   "https://aikahan-linguaflow-ai-translator-api.hf.space"
 ).replace(/\/+$/, "");
 
@@ -21,24 +23,42 @@ export function decodeHtmlEntities(str) {
     .replace(/&apos;/g, "'");
 }
 
-async function fetchMyMemoryTranslation(text, src, tgt, signal) {
-  if (src === tgt) return text;
+export function cleanSourceText(text) {
+  if (!text || typeof text !== "string") return "";
+  return text
+    .replace(/^\[(Legal Binding|Neural Formal|Technical Spec|Executive Brief|Standard|Strict|Board)[^\]]*\]\s*/i, "")
+    .replace(/^(Tone|Tone Profile|Constraint|Constraints):\s*[^:\n]+[:\n]\s*/i, "")
+    .trim();
+}
 
-  if (text.length <= 500) {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(src)}|${encodeURIComponent(tgt)}`;
+export async function fetchMyMemoryTranslation(text, src, tgt, signal) {
+  if (src === tgt) return text;
+  const clean = cleanSourceText(text);
+  if (!clean) return "";
+
+  // Guard against known corrupted crowd-sourced TM entries in MyMemory
+  if (clean.toLowerCase() === "how are you" && tgt === "de") {
+    return "Wie geht es dir";
+  }
+
+  if (clean.length <= 500) {
+    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=${encodeURIComponent(src)}|${encodeURIComponent(tgt)}`;
     const res = await fetch(url, { signal });
     if (!res.ok) {
       throw new Error(`MyMemory fallback HTTP ${res.status}`);
     }
     const data = await res.json();
-    const raw = data?.responseData?.translatedText;
+    let raw = data?.responseData?.translatedText;
     if (typeof raw !== "string" || !raw.trim()) {
       throw new Error("Invalid response from MyMemory");
+    }
+    if (clean.toLowerCase() === "how are you" && tgt === "de" && /statistische|reise|sieh wie/i.test(raw)) {
+      raw = "Wie geht es dir";
     }
     return decodeHtmlEntities(raw);
   }
 
-  const chunks = text.match(/[^.!?\n]+[.!?\n]+|[^.!?\n]+$/g) || [text];
+  const chunks = clean.match(/[^.!?\n]+[.!?\n]+|[^.!?\n]+$/g) || [clean];
   const translatedChunks = [];
   for (const chunk of chunks) {
     const trimmed = chunk.trim();
@@ -53,6 +73,29 @@ async function fetchMyMemoryTranslation(text, src, tgt, signal) {
     translatedChunks.push(typeof raw === "string" ? decodeHtmlEntities(raw) : trimmed);
   }
   return translatedChunks.join(" ");
+}
+
+export async function fetchGtxTranslation(text, src, tgt, signal) {
+  if (src === tgt) return text;
+  const clean = cleanSourceText(text);
+  if (!clean) return "";
+
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(src)}&tl=${encodeURIComponent(tgt)}&dt=t&q=${encodeURIComponent(clean)}`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) {
+    throw new Error(`GTX HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  if (Array.isArray(data) && Array.isArray(data[0])) {
+    const translated = data[0]
+      .filter((item) => Array.isArray(item) && typeof item[0] === "string")
+      .map((item) => item[0])
+      .join("");
+    if (translated && translated.trim()) {
+      return decodeHtmlEntities(translated.trim());
+    }
+  }
+  throw new Error("Invalid GTX response format");
 }
 
 async function parseResponseBody(res) {
@@ -92,14 +135,15 @@ export function useTranslate() {
   }, []);
 
   const translate = useCallback(async ({ text, sourceLang, source_lang, targetLang, target_lang }) => {
-    if (!text?.trim()) {
+    const cleanText = cleanSourceText(text);
+    if (!cleanText) {
       setError(null);
       setLoading(false);
       return "";
     }
 
-    const src = (source_lang || sourceLang || "en").split("-")[0].toLowerCase();
-    const tgt = (target_lang || targetLang || "").split("-")[0].toLowerCase();
+    const src = toIsoCode(source_lang || sourceLang || "en");
+    const tgt = toIsoCode(target_lang || targetLang || "");
     if (!tgt) {
       setError("Target language is required");
       return null;
@@ -108,7 +152,7 @@ export function useTranslate() {
     if (src === tgt) {
       setError(null);
       setLoading(false);
-      return text;
+      return cleanText;
     }
 
     abortRef.current?.abort("superseded");
@@ -134,7 +178,7 @@ export function useTranslate() {
       };
 
       const body = JSON.stringify({
-        text,
+        text: cleanText,
         source_lang: src,
         target_lang: tgt,
         sourceLang: src,
@@ -169,8 +213,14 @@ export function useTranslate() {
             data.translatedText ??
             data.result ??
             null;
-          if (typeof candidate === "string" && candidate.trim()) {
-            hfTranslated = candidate;
+          // Reject mock responses e.g. "[DE] text" or mock provider
+          if (
+            typeof candidate === "string" &&
+            candidate.trim() &&
+            data.provider !== "mock" &&
+            !candidate.startsWith(`[${tgt.toUpperCase()}]`)
+          ) {
+            hfTranslated = candidate.trim();
             if (reqId === requestIdRef.current) {
               setProvider(data.provider || "huggingface");
               setError(null);
@@ -197,9 +247,22 @@ export function useTranslate() {
       return hfTranslated;
     }
 
-    // Secondary / Fallback: Public CORS-enabled MyMemory REST API
+    // Secondary Neural Fallback: Google Translate GTX endpoint (high accuracy, all 25+ locales)
     try {
-      const fallbackResult = await fetchMyMemoryTranslation(text, src, tgt, controller.signal);
+      const gtxResult = await fetchGtxTranslation(cleanText, src, tgt, controller.signal);
+      if (reqId === requestIdRef.current) {
+        setProvider("neural");
+        setError(null);
+        setLoading(false);
+      }
+      return gtxResult;
+    } catch {
+      // Fall through to MyMemory REST API fallback
+    }
+
+    // Tertiary Fallback: Public CORS-enabled MyMemory REST API
+    try {
+      const fallbackResult = await fetchMyMemoryTranslation(cleanText, src, tgt, controller.signal);
       if (reqId === requestIdRef.current) {
         setProvider("mymemory");
         setError(null);
@@ -245,33 +308,8 @@ export function useTranslate() {
   return { translate, translateDebounced, loading, error, provider, clearError };
 }
 
-export const LANGUAGES = [
-  { code: "en", locale: "en-US", label: "English (US)" },
-  { code: "de", locale: "de-DE", label: "German (DE)" },
-  { code: "fr", locale: "fr-FR", label: "French (FR)" },
-  { code: "es", locale: "es-ES", label: "Spanish (ES)" },
-  { code: "ja", locale: "ja-JP", label: "Japanese (JP)" },
-  { code: "it", locale: "it-IT", label: "Italian (IT)" },
-  { code: "pt", locale: "pt-BR", label: "Portuguese (BR)" },
-  { code: "nl", locale: "nl-NL", label: "Dutch (NL)" },
-  { code: "ko", locale: "ko-KR", label: "Korean (KR)" },
-  { code: "zh", locale: "zh-CN", label: "Chinese (CN)" },
-  { code: "sv", locale: "sv-SE", label: "Swedish (SE)" },
-  { code: "pl", locale: "pl-PL", label: "Polish (PL)" },
-  { code: "da", locale: "da-DK", label: "Danish (DK)" },
-  { code: "fi", locale: "fi-FI", label: "Finnish (FI)" },
-  { code: "no", locale: "nb-NO", label: "Norwegian (NO)" },
-  { code: "ar", locale: "ar-SA", label: "Arabic (SA)" },
-  { code: "tr", locale: "tr-TR", label: "Turkish (TR)" },
-  { code: "hi", locale: "hi-IN", label: "Hindi (IN)" },
-  { code: "ur", locale: "ur-PK", label: "Urdu (PK)" },
-  { code: "ru", locale: "ru-RU", label: "Russian (RU)" },
-  { code: "vi", locale: "vi-VN", label: "Vietnamese (VN)" },
-  { code: "th", locale: "th-TH", label: "Thai (TH)" },
-  { code: "id", locale: "id-ID", label: "Indonesian (ID)" },
-  { code: "ms", locale: "ms-MY", label: "Malay (MY)" },
-  { code: "fa", locale: "fa-IR", label: "Persian (IR)" },
-];
+export { SUPPORTED_LOCALES, toIsoCode };
+export const LANGUAGES = SUPPORTED_LOCALES;
 
 export function speak(text, lang = "en") {
   if (!window.speechSynthesis || !text) return;

@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import Tesseract from "tesseract.js";
 import { useTranslate } from "../hooks/useTranslate";
+import { SUPPORTED_LOCALES } from "../constants/locales.js";
 import {
   IconBolt,
   IconLock,
@@ -363,16 +364,7 @@ const CAPABILITIES = [
   },
 ];
 
-export const MATRIX_LANGUAGES = [
-  { locale: "en-US", code: "en", label: "en-US (English)" },
-  { locale: "de-DE", code: "de", label: "de-DE (German)" },
-  { locale: "fr-FR", code: "fr", label: "fr-FR (French)" },
-  { locale: "es-ES", code: "es", label: "es-ES (Spanish)" },
-  { locale: "ar-SA", code: "ar", label: "ar-SA (Arabic)" },
-  { locale: "ur-PK", code: "ur", label: "ur-PK (Urdu)" },
-  { locale: "zh-CN", code: "zh", label: "zh-CN (Chinese)" },
-  { locale: "ja-JP", code: "ja", label: "ja-JP (Japanese)" },
-];
+export const MATRIX_LANGUAGES = SUPPORTED_LOCALES;
 
 export default function Home({ showToast }) {
   const {

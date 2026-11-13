@@ -83,6 +83,13 @@ input, textarea, select {
 
 select {
   appearance: none;
+  color-scheme: dark;
+}
+
+select, option {
+  color-scheme: dark;
+  background-color: var(--surface, #121714);
+  color: var(--text, #FEFAE0);
 }
 
 @keyframes fadeUp {

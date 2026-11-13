@@ -73,6 +73,7 @@
   cursor: pointer;
   min-width: 215px;
   outline: none;
+  color-scheme: dark;
 }
 
 .lang-pill select:focus {

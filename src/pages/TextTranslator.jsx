@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { useTranslate, LANGUAGES, speak, copyText } from "../hooks/useTranslate";
+import { useTranslate, speak, copyText } from "../hooks/useTranslate";
+import { SUPPORTED_LOCALES, getLocale } from "../constants/locales.js";
 import { IconLock, IconGlobe, IconSwap, IconCopy, IconVolume, IconCheck, IconBolt } from "../components/Icons";
 import "./TextTranslator.css";
 
@@ -23,12 +24,13 @@ export default function TextTranslator({ showToast }) {
   const debounceRef = useRef(null);
 
   const runTranslation = async (textToTranslate, srcCode, tgtCode, activeTone) => {
-    if (!textToTranslate.trim()) {
+    const rawClean = (textToTranslate || "").trim();
+    if (!rawClean) {
       setTargetText("");
       return;
     }
     const r = await translate({
-      text: textToTranslate,
+      text: rawClean,
       source_lang: srcCode,
       target_lang: tgtCode,
       sourceLang: srcCode,
@@ -37,7 +39,7 @@ export default function TextTranslator({ showToast }) {
     if (typeof r === "string") {
       setTargetText(r);
       setHistory((prev) => [
-        { src: srcCode, tgt: tgtCode, input: textToTranslate, output: r, tone: activeTone, ts: Date.now() },
+        { src: srcCode, tgt: tgtCode, input: rawClean, output: r, tone: activeTone, ts: Date.now() },
         ...prev.slice(0, 19),
       ]);
     }
@@ -77,8 +79,8 @@ export default function TextTranslator({ showToast }) {
     setCharCount(v.length);
   };
 
-  const srcLangObj = LANGUAGES.find((l) => l.code === sourceLang);
-  const tgtLangObj = LANGUAGES.find((l) => l.code === targetLang);
+  const srcLangObj = getLocale(sourceLang);
+  const tgtLangObj = getLocale(targetLang);
 
   return (
     <div className="tt-page">
@@ -112,10 +114,14 @@ export default function TextTranslator({ showToast }) {
 
           <div className="tt-lang-row">
             <div className="lang-pill">
-              <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
-                {LANGUAGES.map((l) => (
+              <select
+                value={sourceLang}
+                onChange={(e) => setSourceLang(e.target.value)}
+                aria-label="Source Language"
+              >
+                {SUPPORTED_LOCALES.map((l) => (
                   <option key={l.code} value={l.code}>
-                    {l.locale} — {l.label}
+                    {l.label}
                   </option>
                 ))}
               </select>
@@ -124,10 +130,14 @@ export default function TextTranslator({ showToast }) {
               <IconSwap size={14} />
             </button>
             <div className="lang-pill">
-              <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
-                {LANGUAGES.filter((l) => l.code !== sourceLang).map((l) => (
+              <select
+                value={targetLang}
+                onChange={(e) => setTargetLang(e.target.value)}
+                aria-label="Target Language"
+              >
+                {SUPPORTED_LOCALES.filter((l) => l.code !== sourceLang).map((l) => (
                   <option key={l.code} value={l.code}>
-                    {l.locale} — {l.label}
+                    {l.label}
                   </option>
                 ))}
               </select>
@@ -272,8 +282,8 @@ export default function TextTranslator({ showToast }) {
 
           <div className="quick-langs">
             <span className="ql-label">TARGET PRESETS:</span>
-            {["de", "fr", "es", "ja", "it", "nl", "pt", "zh"].map((c) => {
-              const l = LANGUAGES.find((x) => x.code === c);
+            {["de", "fr", "es", "ar", "ur", "ja", "zh", "hi"].map((c) => {
+              const l = getLocale(c);
               return (
                 <button
                   key={c}
@@ -294,8 +304,8 @@ export default function TextTranslator({ showToast }) {
               {showHistory && (
                 <div className="history-list">
                   {history.map((h, i) => {
-                    const sl = LANGUAGES.find((l) => l.code === h.src);
-                    const tl = LANGUAGES.find((l) => l.code === h.tgt);
+                    const sl = getLocale(h.src);
+                    const tl = getLocale(h.tgt);
                     return (
                       <div
                         key={i}

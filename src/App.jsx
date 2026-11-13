@@ -32,6 +32,7 @@ export default function App() {
   const pages = {
     home: Home,
     "text-translator": TextTranslator,
+    "segment-workbench": TextTranslator,
     "camera-translator": CameraTranslator,
     "document-translator": DocumentTranslator,
     voice: VoicePage,
